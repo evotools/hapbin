@@ -1,0 +1,9 @@
+**/*~
+build/
+build?/
+CMakeFiles
+Makefile
+CTestTestfile.cmake
+cmake_install.cmake
+testCTC
+*.kdev4
