@@ -56,7 +56,7 @@ void calcIhsNoMpi(const std::string& hap, const std::string& map, const std::str
     {
         out2 << ctcmap.lineToId(it.first) << " " << it.second << std::endl;
     }
-    std::cout << "# locii with MAF >= 0.05: " << res.size() << std::endl;
+    std::cout << "# loci with MAF >= 0.05: " << res.size() << std::endl;
     delete ihsfinder;
 }
 

@@ -128,7 +128,7 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
         {
             out2 << hap.lineToId(it.first) << " " << it.second << std::endl;
         }
-        std::cout << "# locii with MAF >= " << minMAF << ": " << res.size() << std::endl;
+        std::cout << "# loci with MAF >= " << minMAF << ": " << res.size() << std::endl;
     }
     
     delete ihsfinder;
