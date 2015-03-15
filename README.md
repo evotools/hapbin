@@ -49,9 +49,9 @@ This code is licensed under the GPL v3. Copyright is retained by the original au
 
 ### Dependencies ###
 
-   * A C++11 capable compiler (GCC >= 4.7 for required features). OpenMP support required for threaded execution.
+   * A C++11 capable compiler (GCC >= 4.7 for required features). OpenMP support required for threaded execution. MPIRPC from https://github.com/camaclean/MPIRPC.
 
-   * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers). MPI support also requires MPIRPC from https://github.com/camaclean/MPIRPC.
+   * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers).
 
    * Optional dependency: QT 5 for the unit test framework. On Ubuntu, see: https://qt-project.org/wiki/Install_Qt_5_on_Ubuntu.
 
@@ -61,10 +61,9 @@ An out of source build is suggested in order to keep the source directory clean.
 
 For example:
 
-     cd /path/to/hapbin/src
-     mkdir build
+     cd /path/to/hapbin
      cd build
-     cmake ..
+     cmake ../src/
 
 Once CMake has finished generating the necessary files, simply run `make`.
 
