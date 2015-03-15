@@ -49,9 +49,9 @@ This code is licensed under the GPL v3. Copyright is retained by the original au
 
 ### Dependencies ###
 
-   * A C++11 capable compiler (GCC >= 4.7 for required features). OpenMP support required for threaded execution. MPIRPC from https://github.com/camaclean/MPIRPC.
+   * A C++11 capable compiler (GCC >= 4.7 for required features). OpenMP support required for threaded execution.
 
-   * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers).
+   * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers). MPI support also requires MPIRPC from https://github.com/camaclean/MPIRPC.
 
    * Optional dependency: QT 5 for the unit test framework. On Ubuntu, see: https://qt-project.org/wiki/Install_Qt_5_on_Ubuntu.
 
