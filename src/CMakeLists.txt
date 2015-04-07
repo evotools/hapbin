@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 project(hapbin)
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.7)
 option(MARCH_NATIVE "Optimize with -march=native" ON)
 option(MAKE_TESTS "Build tests" OFF)
 option(USE_MPI "Build with MPI, if available" ON)
