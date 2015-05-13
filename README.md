@@ -81,8 +81,7 @@ First ensure packages required for obtaining and compiling code are installed as
 Install [MPIRPC](https://github.com/camaclean/MPIRPC) to chosen directory.
 
      git clone https://github.com/camaclean/MPIRPC.git
-     cd MPIRPC/
-     cd build/
+     cd MPIRPC/build/
      cmake ../src/
      make
      sudo make install
@@ -94,6 +93,24 @@ Finally download and compile hapbin.
      cd hapbin/build/
      cmake ../src/
      make -j 4
+
+#### Installing without root permissions ####
+
+If you dont want or unable to install MPIRPC system-wide, for example if you do not have the required permissions, you can specify the directory for it to be installed into and then direct cmake to this directory when compiling hapbin. For example to install MPIRPC to the subdirectory MPIRPC/install in your home directory:
+
+     git clone https://github.com/camaclean/MPIRPC.git
+     cd MPIRPC/build/
+     cmake -DCMAKE_INSTALL_PREFIX=$HOME/MPIRPC/install/ ../src/
+     make
+     sudo make install
+     
+     cd ../../
+     git clone -b master https://github.com/evotools/hapbin.git
+     cd hapbin/build/
+     cmake -DCMAKE_PREFIX_PATH=$HOME/MPIRPC/install/ ../src/
+     make -j 4
+
+The two instances of $HOME/MPIRPC/install/ in the above code can be changed to whichever directory you prefer.
 
 ### Installing on ARCHER ###
 
