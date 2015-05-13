@@ -102,7 +102,7 @@ If you dont want or unable to install MPIRPC system-wide, for example if you do 
      cd MPIRPC/build/
      cmake -DCMAKE_INSTALL_PREFIX=$HOME/MPIRPC/install/ ../src/
      make
-     sudo make install
+     make install
      
      cd ../../
      git clone -b master https://github.com/evotools/hapbin.git
