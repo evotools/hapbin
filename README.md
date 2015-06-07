@@ -99,7 +99,7 @@ Next, create a `toolchain.cmake` file with the necessary overrides:
     SET(CMAKE_CXX_COMPILER "/path/to/cxx/compiler")
     ...
 
-`MPI_C_LIBRARIES`, `MPI_CXX_LIBRARIES`, `MPI_C_INCLUDE_PATH`, and `MPI_CXX_INCLUDE_PATH` can be set in this file, too, if needed.
+`MPI_C_LIBRARIES`, `MPI_CXX_LIBRARIES`, `MPI_C_INCLUDE_PATH`, and `MPI_CXX_INCLUDE_PATH` can be set in this file, too, if necessary.
 
 Then, tell cmake to use this toolchain and build:
 
