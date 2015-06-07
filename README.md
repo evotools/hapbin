@@ -49,7 +49,7 @@ This code is licensed under the GPL v3. Copyright is retained by the original au
 
 ### Dependencies ###
 
-   * A C++11 capable compiler (GCC >= 4.7 for required features). OpenMP support required for threaded execution. Requires MPIRPC from https://github.com/camaclean/MPIRPC.
+   * A C++11 capable compiler (GCC >= 4.7 for required features). OpenMP support required for threaded execution.
 
    * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers).
 
@@ -73,50 +73,44 @@ Running `ctest` or `make test` will run all test programs.
 
 ### Installing on Ubuntu ###
 
-First ensure packages required for obtaining and compiling code are installed as well as mpi packages used for parallelisation if required.
+First, ensure packages required for obtaining and compiling code are installed as well as mpi packages used for parallelisation if required.
 
      sudo apt-get update
      sudo apt-get install git cmake libcr-dev mpich libmpich-dev
 
-Install [MPIRPC](https://github.com/camaclean/MPIRPC) to chosen directory.
+Download and compile hapbin.
 
-     git clone https://github.com/camaclean/MPIRPC.git
-     cd MPIRPC/build/
-     cmake ../src/
-     make
-     sudo make install
-
-Finally download and compile hapbin.
-
-     cd ../../
-     git clone -b master https://github.com/evotools/hapbin.git
+     git clone https://github.com/evotools/hapbin.git
      cd hapbin/build/
      cmake ../src/
-     make -j 4
-
-#### Installing without root permissions ####
-
-If you dont want or unable to install MPIRPC system-wide, for example if you do not have the required permissions, you can specify the directory for it to be installed into and then direct cmake to this directory when compiling hapbin. For example to install MPIRPC to the subdirectory MPIRPC/install in your home directory:
-
-     git clone https://github.com/camaclean/MPIRPC.git
-     cd MPIRPC/build/
-     cmake -DCMAKE_INSTALL_PREFIX=$HOME/MPIRPC/install/ ../src/
      make
-     make install
-     
-     cd ../../
-     git clone -b master https://github.com/evotools/hapbin.git
-     cd hapbin/build/
-     cmake -DCMAKE_PREFIX_PATH=$HOME/MPIRPC/install/ ../src/
-     make -j 4
 
-The two instances of $HOME/MPIRPC/install/ in the above code can be changed to whichever directory you prefer.
+### Installing with an alternate toolchain ###
+
+First, check out the hapbin source:
+    
+    git clone https://github.com/evotools/hapbin.git
+    cd hapbin/build/
+
+Next, create a `toolchain.cmake` file with the necessary overrides:
+
+    ...
+    SET(CMAKE_C_COMPILER "/path/to/c/compiler")
+    SET(CMAKE_CXX_COMPILER "/path/to/cxx/compiler")
+    ...
+
+`MPI_C_LIBRARIES`, `MPI_CXX_LIBRARIES`, `MPI_C_INCLUDE_PATH`, and `MPI_CXX_INCLUDE_PATH` can be set in this file, too, if needed.
+
+Then, tell cmake to use this toolchain and build:
+
+    cmake ../src/ -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake
+    make
 
 ### Installing on ARCHER ###
 
 If you are using hapbin on the [ARCHER UK National HPC Service](http://www.archer.ac.uk/), follow these steps:
 
-   1. Install [MPIRPC](https://github.com/camaclean/MPIRPC).
+   1. Download hapbin: `git clone https://github.com/evotools/hapbin.git`
 
    2. Navigate to the build directory: `cd hapbin/build`
 
