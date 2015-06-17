@@ -24,22 +24,23 @@ The map files (`--map`) should be in the same format as used by [Selscan](https:
 
 - ehhbin outputs two columns, the EHH for each allele (0 and 1) at each location.
 - ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
-- xpehh output file also contains two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
+- xpehh also outputs a file containing two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
 
 ### Examples ###
 
-Example command for calculating EHH for a variant with ID (`--locus`) of 9189 as specified in the map input file. Output is redirected to file named 9189_EHH.txt:
+Example command for calculating EHH for a variant with ID (`--locus`) of 140465 as specified in the map input file. Output is redirected to file named 140465_EHH.txt:
 
-     ehhbin --hap phasedHaplotypes_chr22.hap --map chr22.map --locus 9189 > 9189_EHH.txt
+     ./ehhbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --locus 140465 > 140465_EHH.txt
 
 Example command for calculating the iHS of all variants with a minor allele frequency greater than 10% (`--minmaf 0.1`) and specifying that the integral of the observed decay of EHH (i.e. iHH, see [Voight et al.](http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0040072) for more information) should be calculated up to the point at which EHH drops below 0.1 (`--cutoff 0.1`):
 
-     ihsbin --hap phasedHaplotypes_chr22.hap --map chr22.map --out chr22_iHS --minmaf 0.1 --cutoff 0.1
+     ./ihsbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --out chr22_iHS --minmaf 0.1 --cutoff 0.1
 
 Example command for calculating XP-EHH with default values for minor allele frequency and EHH cutoff:
 
-     xpehhbin --hapA EUR_phasedHaplotypes_chr22.hap --hapB AFR_phasedHaplotypes_chr22.hap --map chr22.map --out chr22_EURvsAFR_XPEHH
+     ./xpehhbin --hapA 1000GP_Phase3.GBR.chr22.hap --hapB 1000GP_Phase3.YRI.chr22.hap --map chr22.map --out chr22_GBRvsYRI_XPEHH
 
+Each of the input files referred to in these examples can be found in the data directory.
 
 ## Copyright and License ##
 
@@ -55,35 +56,37 @@ This code is licensed under the GPL v3. Copyright is retained by the original au
 
    * Optional dependency: QT 5 for the unit test framework. On Ubuntu, see: https://qt-project.org/wiki/Install_Qt_5_on_Ubuntu.
 
-### Building the source code ###
+If any of these are not already installed on your system then for the main Linux distributions they can simply be added via their package managers.
 
-An out of source build is suggested in order to keep the source directory clean. To do this, create a build directory, then run `cmake [path to directory]` in the build directory.
-
-For example:
-
-     cd /path/to/hapbin
-     cd build
-     cmake ../src/
-
-Once CMake has finished generating the necessary files, simply run `make`.
-
-The test programs are created in a `test` subdirectory. Run these test programs with `-help` or see the Qt 5 QTest framework documentation for testing and benchmarking options.
-
-Running `ctest` or `make test` will run all test programs.
-
-### Installing on Ubuntu ###
-
-First, ensure packages required for obtaining and compiling code are installed as well as mpi packages used for parallelisation if required.
+For example to install on **Ubuntu** (tested on 14.04 LTS):
 
      sudo apt-get update
      sudo apt-get install git cmake libcr-dev mpich libmpich-dev
 
-Download and compile hapbin.
+On **openSUSE** (tested on Enterprise Server 12):
+
+     sudo zypper install cmake git-core gcc-c++ openmpi openmpi-devel
+     export PATH=$PATH:/usr/lib64/mpi/gcc/openmpi/lib64:/usr/lib64/mpi/gcc/openmpi/bin
+
+On **Red Hat** (tested on Enterprise Linux 7.1):
+
+     sudo yum install cmake git gcc-c++
+
+
+### Building the source code ###
+
+An out of source build is suggested in order to keep the source directory clean. To do this, check out the hapbin source, move to the build directory, then run `cmake [path to src directory]`. Once CMake has finished generating the necessary files, simply run `make`.
+
+For example:
 
      git clone https://github.com/evotools/hapbin.git
      cd hapbin/build/
      cmake ../src/
      make
+
+The test programs are created in a `test` subdirectory. Run these test programs with `-help` or see the Qt 5 QTest framework documentation for testing and benchmarking options.
+
+Running `ctest` or `make test` will run all test programs.
 
 ### Installing with an alternate toolchain ###
 
