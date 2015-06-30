@@ -54,8 +54,6 @@ This code is licensed under the GPL v3. Copyright is retained by the original au
 
    * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers).
 
-   * Optional dependency: QT 5 for the unit test framework. On Ubuntu, see: https://qt-project.org/wiki/Install_Qt_5_on_Ubuntu.
-
 If any of these are not already installed on your system then for the main Linux distributions they can simply be added via their package managers.
 
 For example to install on **Ubuntu** (tested on 14.04 LTS):
@@ -83,10 +81,6 @@ For example:
      cd hapbin/build/
      cmake ../src/
      make
-
-The test programs are created in a `test` subdirectory. Run these test programs with `-help` or see the Qt 5 QTest framework documentation for testing and benchmarking options.
-
-Running `ctest` or `make test` will run all test programs.
 
 ### Installing with an alternate toolchain ###
 
