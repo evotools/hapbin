@@ -14,34 +14,6 @@ The `hapbin` suite contains the following tools:
 
 For additional options, see `[executable] --help`.
 
-### Input file formats ###
-
-The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using hapbincov. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference).
-
-The map files (`--map`) should be in the same format as used by [Selscan](https://github.com/szpiech/selscan) with one row per variant and four space-separated columns specifiying chromosome, locus ID, genetic position and physical position.
-
-### Output file formats ###
-
-- ehhbin outputs two columns, the EHH for each allele (0 and 1) at each location.
-- ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
-- xpehh also outputs a file containing two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
-
-### Examples ###
-
-Example command for calculating EHH for a variant with ID (`--locus`) of 140465 as specified in the map input file. Output is redirected to file named 140465_EHH.txt:
-
-     ./ehhbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --locus 140465 > 140465_EHH.txt
-
-Example command for calculating the iHS of all variants with a minor allele frequency greater than 10% (`--minmaf 0.1`) and specifying that the integral of the observed decay of EHH (i.e. iHH, see [Voight et al.](http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0040072) for more information) should be calculated up to the point at which EHH drops below 0.1 (`--cutoff 0.1`):
-
-     ./ihsbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --out chr22_iHS --minmaf 0.1 --cutoff 0.1
-
-Example command for calculating XP-EHH with default values for minor allele frequency and EHH cutoff:
-
-     ./xpehhbin --hapA 1000GP_Phase3.GBR.chr22.hap --hapB 1000GP_Phase3.YRI.chr22.hap --map chr22.map --out chr22_GBRvsYRI_XPEHH
-
-Each of the input files referred to in these examples can be found in the data directory.
-
 ## Copyright and License ##
 
 This code is licensed under the GPL v3. Copyright is retained by the original authors, Colin Maclean and the University of Edinburgh.
@@ -118,3 +90,31 @@ If you are using hapbin on the [ARCHER UK National HPC Service](http://www.arche
    5. Copy desired `hapbin.[haps].[threads].pbs` from `hapbin/tools/pbs/hapbin` to `/work/[project code]/[group code]/[username]/hapbin/bin/`
 
    6. `cd /work/[project code]/[group code]/[username]/hapbin/bin`, edit PBS as desired, and submit to the batch queue with `qsub`.
+
+### Input file formats ###
+
+The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using hapbincov. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference).
+
+The map files (`--map`) should be in the same format as used by [Selscan](https://github.com/szpiech/selscan) with one row per variant and four space-separated columns specifiying chromosome, locus ID, genetic position and physical position.
+
+### Output file formats ###
+
+- ehhbin outputs two columns, the EHH for each allele (0 and 1) at each location.
+- ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
+- xpehh also outputs a file containing two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
+
+### Examples ###
+
+Example command for calculating EHH for a variant with ID (`--locus`) of 140465 as specified in the map input file. Output is redirected to file named 140465_EHH.txt:
+
+     ./ehhbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --locus 140465 > 140465_EHH.txt
+
+Example command for calculating the iHS of all variants with a minor allele frequency greater than 10% (`--minmaf 0.1`) and specifying that the integral of the observed decay of EHH (i.e. iHH, see [Voight et al.](http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0040072) for more information) should be calculated up to the point at which EHH drops below 0.1 (`--cutoff 0.1`):
+
+     ./ihsbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --out chr22_iHS --minmaf 0.1 --cutoff 0.1
+
+Example command for calculating XP-EHH with default values for minor allele frequency and EHH cutoff:
+
+     ./xpehhbin --hapA 1000GP_Phase3.GBR.chr22.hap --hapB 1000GP_Phase3.YRI.chr22.hap --map chr22.map --out chr22_GBRvsYRI_XPEHH
+
+Each of the input files referred to in these examples can be found in the data directory.
