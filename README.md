@@ -42,6 +42,7 @@ On **Red Hat** (tested on Enterprise Linux 7.1):
 
      sudo yum install cmake git gcc-c++
 
+For those servers where CMake is not installed, and you do not have the necessary permissions to add it as above, precompiled binaries can be downloaded from [here](http://www.cmake.org/download/).
 
 ### Building the source code ###
 
@@ -99,13 +100,13 @@ The map files (`--map`) should be in the same format as used by [Selscan](https:
 
 ### Output file formats ###
 
-- ehhbin outputs two columns, the EHH for each allele (0 and 1) at each location.
+- ehhbin outputs five columns. The first three being the locus' ID and its genetic and physical positions. These are followed by two columns corresponding to the EHH for each of the alleles at this locus (allele coded as 0 then 1).
 - ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
 - xpehh also outputs a file containing two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
 
 ### Examples ###
 
-Example command for calculating EHH for a variant with ID (`--locus`) of 140465 as specified in the map input file. Output is redirected to file named 140465_EHH.txt:
+Example command for calculating EHH for a variant with ID (`--locus`) of 140465 as specified in the map input file. Output is redirected to a file named 140465_EHH.txt:
 
      ./ehhbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --locus 140465 > 140465_EHH.txt
 
