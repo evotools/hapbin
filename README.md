@@ -94,7 +94,7 @@ If you are using hapbin on the [ARCHER UK National HPC Service](http://www.arche
 
 ### Input file formats ###
 
-The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using hapbincov. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference).
+The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using hapbincov. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference). If your data is in VCF format it can be converted to IMPUTE format using [vcftools](https://vcftools.github.io).
 
 The map files (`--map`) should be in the same format as used by [Selscan](https://github.com/szpiech/selscan) with one row per variant and four space-separated columns specifiying chromosome, locus ID, genetic position and physical position.
 
