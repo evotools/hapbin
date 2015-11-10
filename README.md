@@ -14,33 +14,6 @@ The `hapbin` suite contains the following tools:
 
 For additional options, see `[executable] --help`.
 
-### Input file formats ###
-
-The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using hapbincov. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference).
-
-The map files (`--map`) should be in the same format as used by [Selscan](https://github.com/szpiech/selscan) with one row per variant and four space-separated columns specifiying chromosome, locus ID, genetic position and physical position.
-
-### Output file formats ###
-
-- ehhbin outputs two columns, the EHH for each allele (0 and 1) at each location.
-- ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
-- xpehh output file also contains two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
-
-### Examples ###
-
-Example command for calculating EHH for a variant with ID (`--locus`) of 9189 as specified in the map input file. Output is redirected to file named 9189_EHH.txt:
-
-     ehhbin --hap phasedHaplotypes_chr22.hap --map chr22.map --locus 9189 > 9189_EHH.txt
-
-Example command for calculating the iHS of all variants with a minor allele frequency greater than 10% (`--minmaf 0.1`) and specifying that the integral of the observed decay of EHH (i.e. iHH, see [Voight et al.](http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0040072) for more information) should be calculated up to the point at which EHH drops below 0.1 (`--cutoff 0.1`):
-
-     ihsbin --hap phasedHaplotypes_chr22.hap --map chr22.map --out chr22_iHS --minmaf 0.1 --cutoff 0.1
-
-Example command for calculating XP-EHH with default values for minor allele frequency and EHH cutoff:
-
-     xpehhbin --hapA EUR_phasedHaplotypes_chr22.hap --hapB AFR_phasedHaplotypes_chr22.hap --map chr22.map --out chr22_EURvsAFR_XPEHH
-
-
 ## Copyright and License ##
 
 This code is licensed under the GPL v3. Copyright is retained by the original authors, Colin Maclean and the University of Edinburgh.
@@ -51,57 +24,63 @@ This code is licensed under the GPL v3. Copyright is retained by the original au
 
    * A C++11 capable compiler (GCC >= 4.7 for required features). OpenMP support required for threaded execution.
 
-   * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers). MPI support also requires MPIRPC from https://github.com/camaclean/MPIRPC.
+   * Optional dependency: MPI for execution on distributed memory systems (clusters/supercomputers).
 
-   * Optional dependency: QT 5 for the unit test framework. On Ubuntu, see: https://qt-project.org/wiki/Install_Qt_5_on_Ubuntu.
+If any of these are not already installed on your system then for the main Linux distributions they can simply be added via their package managers.
 
-### Building the source code ###
-
-An out of source build is suggested in order to keep the source directory clean. To do this, create a build directory, then run `cmake [path to directory]` in the build directory.
-
-For example:
-
-     cd /path/to/hapbin/src
-     mkdir build
-     cd build
-     cmake ..
-
-Once CMake has finished generating the necessary files, simply run `make`.
-
-The test programs are created in a `test` subdirectory. Run these test programs with `-help` or see the Qt 5 QTest framework documentation for testing and benchmarking options.
-
-Running `ctest` or `make test` will run all test programs.
-
-### Installing on Ubuntu ###
-
-First ensure packages required for obtaining and compiling code are installed as well as mpi packages used for parallelisation if required.
+For example to install on **Ubuntu** (tested on 14.04 LTS):
 
      sudo apt-get update
      sudo apt-get install git cmake libcr-dev mpich libmpich-dev
 
-Install [MPIRPC](https://github.com/camaclean/MPIRPC) to chosen directory.
+On **openSUSE** (tested on Enterprise Server 12):
 
-     git clone https://github.com/camaclean/MPIRPC.git
-     cd MPIRPC/
-     mkdir build
-     cd build/
-     cmake ../src/
-     make
-     sudo make install
+     sudo zypper install cmake git-core gcc-c++ openmpi openmpi-devel
+     export PATH=$PATH:/usr/lib64/mpi/gcc/openmpi/lib64:/usr/lib64/mpi/gcc/openmpi/bin
 
-Finally download and compile hapbin.
+On **Red Hat** (tested on Enterprise Linux 7.1):
 
-     cd ../../
-     git clone -b master https://github.com/evotools/hapbin.git
+     sudo yum install cmake git gcc-c++
+
+For those servers where CMake is not installed, and you do not have the necessary permissions to add it as above, precompiled binaries can be downloaded from [here](http://www.cmake.org/download/).
+
+### Building the source code ###
+
+An out of source build is suggested in order to keep the source directory clean. To do this, check out the hapbin source, move to the build directory, then run `cmake [path to src directory]`. Once CMake has finished generating the necessary files, simply run `make`.
+
+For example:
+
+     git clone https://github.com/evotools/hapbin.git
      cd hapbin/build/
      cmake ../src/
-     make -j 4
+     make
+
+### Installing with an alternate toolchain ###
+
+First, check out the hapbin source:
+    
+    git clone https://github.com/evotools/hapbin.git
+    cd hapbin/build/
+
+Next, create a `toolchain.cmake` file with the necessary overrides:
+
+    ...
+    SET(CMAKE_C_COMPILER "/path/to/c/compiler")
+    SET(CMAKE_CXX_COMPILER "/path/to/cxx/compiler")
+    ...
+
+`MPI_C_LIBRARIES`, `MPI_CXX_LIBRARIES`, `MPI_C_INCLUDE_PATH`, and `MPI_CXX_INCLUDE_PATH` can be set in this file, too, if necessary.
+
+Then, tell cmake to use this toolchain and build:
+
+    cmake ../src/ -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake
+    make
 
 ### Installing on ARCHER ###
 
 If you are using hapbin on the [ARCHER UK National HPC Service](http://www.archer.ac.uk/), follow these steps:
 
-   1. Install [MPIRPC](https://github.com/camaclean/MPIRPC).
+   1. Download hapbin: `git clone https://github.com/evotools/hapbin.git`
 
    2. Navigate to the build directory: `cd hapbin/build`
 
@@ -112,3 +91,31 @@ If you are using hapbin on the [ARCHER UK National HPC Service](http://www.arche
    5. Copy desired `hapbin.[haps].[threads].pbs` from `hapbin/tools/pbs/hapbin` to `/work/[project code]/[group code]/[username]/hapbin/bin/`
 
    6. `cd /work/[project code]/[group code]/[username]/hapbin/bin`, edit PBS as desired, and submit to the batch queue with `qsub`.
+
+### Input file formats ###
+
+The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using `hapbinconv`. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference). If your data is in VCF format it can be converted to IMPUTE format using [vcftools](https://vcftools.github.io).
+
+The map files (`--map`) should be in the same format as used by [Selscan](https://github.com/szpiech/selscan) with one row per variant and four space-separated columns specifiying chromosome, locus ID, genetic position and physical position.
+
+### Output file formats ###
+
+- ehhbin outputs five columns. The first three being the locus' ID and its genetic and physical positions. These are followed by two columns corresponding to the EHH for each of the alleles at this locus (allele coded as 0 then 1).
+- ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
+- xpehh also outputs a file containing two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
+
+### Examples ###
+
+Example command for calculating EHH for a variant with ID (`--locus`) of 140465 as specified in the map input file. Output is redirected to a file named 140465_EHH.txt:
+
+     ./ehhbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --locus 140465 > 140465_EHH.txt
+
+Example command for calculating the iHS of all variants with a minor allele frequency greater than 10% (`--minmaf 0.1`) and specifying that the integral of the observed decay of EHH (i.e. iHH, see [Voight et al.](http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0040072) for more information) should be calculated up to the point at which EHH drops below 0.1 (`--cutoff 0.1`):
+
+     ./ihsbin --hap 1000GP_Phase3.GBR.chr22.hap --map chr22.map --out chr22_iHS --minmaf 0.1 --cutoff 0.1
+
+Example command for calculating XP-EHH with default values for minor allele frequency and EHH cutoff:
+
+     ./xpehhbin --hapA 1000GP_Phase3.GBR.chr22.hap --hapB 1000GP_Phase3.YRI.chr22.hap --map chr22.map --out chr22_GBRvsYRI_XPEHH
+
+Each of the input files referred to in these examples can be found in the data directory.

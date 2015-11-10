@@ -92,11 +92,11 @@ struct EHH
                   << 1.0 << " " << 1.0 << std::endl;
         for (i = 0; i < downstream.size(); ++i)
         {
-            std::cout << hm->lineToId(index-i+1) << " "
-                      << hm->geneticPosition(index-i+1) << " " 
-                      << hm->physicalPosition(index-i+1) << " " 
-                      << upstream.at(i).probs << " "
-                      << upstream.at(i).probsNot << std::endl;
+            std::cout << hm->lineToId(index+i+1) << " "
+                      << hm->geneticPosition(index+i+1) << " "
+                      << hm->physicalPosition(index+i+1) << " "
+                      << downstream.at(i).probs << " "
+                      << downstream.at(i).probsNot << std::endl;
         }
     }
 };
