@@ -1,0 +1,15 @@
+set(CMAKE_PREFIX_PATH "$ENV{HOME}/install/")
+#Must force set in order to be correctly set by CMake on the first run of cmake.
+set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/hapbin" CACHE STRING "Install path" FORCE)
+#set(CMAKE_C_COMPILER "gcc")
+#set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_C_COMPILER "/opt/cray/craype/default/bin/cc")
+set(CMAKE_CXX_COMPILER "/opt/cray/craype/2.3.0/bin/CC")
+set(MPI_C_LIBRARIES "/opt/cray/mpt/default/gni/mpich2-gnu/48/lib/libmpich_gnu_48.so")
+set(MPI_C_INCLUDE_PATH "/opt/cray/mpt/default/gni/mpich2-gnu/48/include/")
+set(MPI_CXX_LIBRARIES "/opt/cray/mpt/default/gni/mpich2-gnu/48/lib/libmpichcxx_gnu_48.so")
+set(MPI_CXX_INCLUDE_PATH "/opt/cray/mpt/default/gni/mpich2-gnu/48/include/")
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE) 
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+include_directories("$ENV{HOME}/install/include")
+

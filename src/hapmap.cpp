@@ -65,10 +65,21 @@ void HapMap::loadMap(const char* mapFilename)
             return;
         }
         std::vector<std::string> split = splitString(line, ' ');
-        m_idMap[lineNum] = split[1];
-        m_genPos[lineNum] = atof(split[2].c_str());
-        m_physPos[lineNum] = strtoull(split[3].c_str(), 0, 10);
-        ++lineNum;
+	if (split.size() == 1)
+            split = splitString(line, '\t');
+        if (split.size() == 4) {
+            m_idMap[lineNum] = split[1];
+            m_genPos[lineNum] = atof(split[2].c_str());
+            m_physPos[lineNum] = strtoull(split[3].c_str(), 0, 10);
+            ++lineNum;
+        }
+    }
+    if (lineNum != m_numSnps)
+    {
+        std::cerr << "ERROR: Map file must have the same number of loci as hap file! Hap file has " << m_numSnps << " SNPs. Map file has " << lineNum << " SNPs." << std::endl;
+        if (lineNum == 0)
+            std::cerr << "Perhaps the Map file format is wrong?" << std::endl;
+        abort();
     }
 }
 
