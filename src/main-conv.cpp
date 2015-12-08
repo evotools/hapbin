@@ -40,11 +40,26 @@ void tobin(const char* in, const char* out)
 int main(int argc, char** argv)
 {
     Argument<bool> help('h', "help", "Show this help", true, false);
-    Argument<std::string> hap('d', "hap", "ASCII Hap file", false, true, "");
+    Argument<bool> version('v', "version", "Version information", true, false);
+    Argument<std::string> hap('d', "hap", "ASCII Hap file", false, false, "");
     Argument<std::string> outfile('o', "out", "Binary output file", false, false, "out.hapbin");
-    ArgParse argparse({&help, &hap, &outfile}, "Usage: hapbinconv --hap input.hap --out outfile.hapbin");
+    ArgParse argparse({&help, &version, &hap, &outfile}, "Usage: hapbinconv --hap input.hap --out outfile.hapbin");
     if (!argparse.parseArguments(argc, argv))
         return 1;
+    if (help.value())
+    {
+        argparse.showHelp();
+        return 0;
+    }
+    else if (version.value())
+    {
+        argparse.showVersion();
+        return 0;
+    }
+    else if (!hap.wasFound()) {
+        std::cout << "Please specify --hap." << std::endl;
+        return 2;
+    }
     tobin(hap.value().c_str(), outfile.value().c_str()); 
     return 0;
 }

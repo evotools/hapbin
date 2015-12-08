@@ -20,6 +20,20 @@ option(MARCH_NATIVE "Optimize with -march=native" ON)
 option(USE_MPI "Build with MPI, if available" ON)
 option(USE_LTO "Build with Link Time Optimizations" OFF)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+include(GetGitRevisionDescription)
+git_describe(VERSION --tags --dirty=-dirty)
+
+#parse the version information into pieces.
+string(REGEX REPLACE "^v([0-9]+)\\..*" "\\1" VERSION_MAJOR "${VERSION}")
+string(REGEX REPLACE "^v[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${VERSION}")
+string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_PATCH
+    "${VERSION}")
+string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1
+    "${VERSION}")
+set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 if(CMAKE_COMPILER_IS_GNUCXX)
     if(USE_LTO)

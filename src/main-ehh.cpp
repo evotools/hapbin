@@ -29,15 +29,33 @@
 int main(int argc, char** argv)
 {
     Argument<bool> help('h', "help", "Show this help", true, false);
-    Argument<const char*> hap('d', "hap", "Hap file", false, true, "");
-    Argument<const char*> map('m', "map", "Map file", false, true, "");
+    Argument<bool> version('v', "version", "Version information", true, false);
+    Argument<const char*> hap('d', "hap", "Hap file", false, false, "");
+    Argument<const char*> map('m', "map", "Map file", false, false, "");
     Argument<double> cutoff('c', "cutoff", "EHH cutoff value (default: 0.05)", false, false, 0.05);
     Argument<double> minMAF('b', "minmaf", "Minimum allele frequency (default: 0.05)", false, false, 0.05);
     Argument<unsigned long long> scale('s', "scale", "Gap scale parameter in bp, used to scale gaps > scale parameter as in Voight, et al.", false, false, 20000);
-    Argument<const char*> locus('l', "locus", "Locus", false, true, 0);
-    ArgParse argparse({&help, &hap, &map, &locus, &cutoff, &minMAF, &scale}, "Usage: ehhbin --map input.map --hap input.hap --locus id");
-    argparse.parseArguments(argc, argv);
-    //using HapMapType = HapMap<CTCBitset<2*INDIVIDUALS>>;
+    Argument<const char*> locus('l', "locus", "Locus", false, false, 0);
+    ArgParse argparse({&help, &version, &hap, &map, &locus, &cutoff, &minMAF, &scale}, "Usage: ehhbin --map input.map --hap input.hap --locus id");
+    if (!argparse.parseArguments(argc, argv)) 
+    {
+        return 3;
+    }
+    if (help.value())
+    {
+        argparse.showHelp();
+        return 0;
+    }
+    else if (version.value())
+    {
+        argparse.showVersion();
+        return 0;
+    }
+    else if (!hap.wasFound() || !map.wasFound() || !locus.wasFound())
+    {
+        std::cout << "Please specify --hap, --map, and --locus." << std::endl;
+        return 4;
+    }
     using HapMapType = HapMap;
     HapMapType hmap;
     if (!hmap.loadHap(hap.value()))

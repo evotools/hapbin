@@ -32,31 +32,55 @@
 
 int main(int argc, char** argv)
 {
+    int ret = 0;
+    std::size_t numSnps;
 #if MPI_FOUND
     MPI_Init(&argc, &argv);
 #endif
     Argument<bool> help('h', "help", "Show this help", true, false);
-    Argument<std::string> hap('d', "hap", "Hap file", false, true, "");
-    Argument<std::string> map('m', "map", "Map file", false, true, "");
+    Argument<bool> version('v', "version", "Version information", true, false);
+    Argument<std::string> hap('d', "hap", "Hap file", false, false, "");
+    Argument<std::string> map('m', "map", "Map file", false, false, "");
     Argument<double> cutoff('c', "cutoff", "EHH cutoff value (default: 0.05)", false, false, 0.05);
     Argument<double> minMAF('f', "minmaf", "Minimum allele frequency (default: 0.05)", false, false, 0.05);
     Argument<double> binfac('b', "bin", "Frequency bin size (default: 0.02)", false, false, 0.02);
     Argument<unsigned long long> scale('s', "scale", "Gap scale parameter in bp, used to scale gaps > scale parameter as in Voight, et al.", false, false, 20000);
     Argument<std::string> outfile('o', "out", "Output file", false, false, "out.txt");
-    ArgParse argparse({&help, &hap, &map, &outfile, &cutoff, &minMAF, &scale, &binfac}, "Usage: ihsbin --map input.map --hap input.hap [--ascii] [--out outfile]");
-    if (!argparse.parseArguments(argc, argv))
-        return 1;
+    ArgParse argparse({&help, &version, &hap, &map, &outfile, &cutoff, &minMAF, &scale, &binfac}, "Usage: ihsbin --map input.map --hap input.hap [--ascii] [--out outfile]");
+    if (!argparse.parseArguments(argc, argv)) 
+    {
+        ret = 1;
+        goto out;
+    }
+    if (help.value())
+    {
+        argparse.showHelp();
+        goto out;
+    }
+    else if (version.value())
+    {
+        argparse.showVersion();
+        goto out;
+    }
+    else if (!hap.wasFound() || !map.wasFound())
+    {
+        std::cout << "Please specify --hap and --map." << std::endl;
+        ret = 2;
+        goto out;
+    }
     
-    std::size_t numSnps = HapMap::querySnpLength(hap.value().c_str());
+    numSnps = HapMap::querySnpLength(hap.value().c_str());
     std::cout << "Chromosomes per SNP: " << numSnps << std::endl;
     
     calcIhs(hap.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), binfac.value());
+
+out:
 #if MPI_FOUND
     MPI_Barrier(MPI_COMM_WORLD);
 
     MPI_Finalize();
 #endif
-    return 0;
+    return ret;
 }
 
 
