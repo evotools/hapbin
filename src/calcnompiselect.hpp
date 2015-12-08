@@ -56,7 +56,7 @@ void calcIhsNoMpi(const std::string& hap, const std::string& map, const std::str
     {
         out2 << ctcmap.lineToId(it.first) << " " << it.second << std::endl;
     }
-    std::cout << "# loci with MAF >= " << minMAF << ": " << res.size() << std::endl;
+    std::cout << "# valid loci: " << res.size() << std::endl;
     std::cout << "# loci with MAF < " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
     std::cout << "# loci with NaN result: " << ihsfinder->numNanResults() << std::endl;
     std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;

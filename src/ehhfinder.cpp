@@ -469,7 +469,7 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
     }
     if (focus < 2)
     {
-        ++(*outsideMaf);
+        ++(*reachedEnd);
         return EHH();
     }
     
