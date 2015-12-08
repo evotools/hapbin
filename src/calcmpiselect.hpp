@@ -21,8 +21,8 @@
 #include "ihsfinder.hpp"
 #include "hapbin.hpp"
 
-#include <mpirpc/manager.hpp>
-#include <mpirpc/parameterstream.hpp>
+#include "mpirpc/manager.hpp"
+#include "mpirpc/parameterstream.hpp"
 
 #include <chrono>
 
@@ -71,7 +71,7 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
         std::cout << "Computing EHH for " << (end-start) << " lines on rank " << manager->rank() << std::endl;
         ihsfinder->run(&hap, start, end);
         IHSFinder::LineMap fbl = ihsfinder->freqsByLine();
-        manager->invokeFunction(mainihsfinder, &IHSFinder::addData, false, fbl, ihsfinder->unStdIHSByLine(), ihsfinder->unStdIHSByFreq());
+        manager->invokeFunction(mainihsfinder, &IHSFinder::addData, false, fbl, ihsfinder->unStdIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
         manager->invokeFunction(0, done);
     });
     manager->barrier();
@@ -128,7 +128,10 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
         {
             out2 << hap.lineToId(it.first) << " " << it.second << std::endl;
         }
-        std::cout << "# loci with MAF >= " << minMAF << ": " << res.size() << std::endl;
+        std::cout << "# valid loci: " << res.size() << std::endl;
+        std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
+        std::cout << "# loci with NaN result: " << ihsfinder->numNanResults() << std::endl;
+        std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;
     }
     
     delete ihsfinder;
@@ -182,7 +185,7 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         std::cout << "Computing XPEHH for " << (end-start) << " lines on rank " << manager->rank() << std::endl;
         ihsfinder->runXpehh(&mA, &mB, start, end);
         IHSFinder::LineMap fbl = ihsfinder->freqsByLine();
-        manager->invokeFunction(mainihsfinder, &IHSFinder::addData, false, fbl, ihsfinder->unStdIHSByLine(), ihsfinder->unStdIHSByFreq());
+        manager->invokeFunction(mainihsfinder, &IHSFinder::addData, false, fbl, ihsfinder->unStdIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
         manager->invokeFunction(0, done);
     });
     manager->barrier();
@@ -233,6 +236,8 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         {
             out << mA.lineToId(it.first) << " " << it.second << std::endl;
         }
+        std::cout << "# valid loci: " << ihsfinder->unStdIHSByLine().size() << std::endl;
+        std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;
     }
     delete ihsfinder;
     delete manager;

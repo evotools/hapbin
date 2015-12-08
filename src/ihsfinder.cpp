@@ -20,7 +20,7 @@
 #include "ihsfinder.hpp"
 
 IHSFinder::IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, double binFactor)
-    : m_snpLength(snpLength), m_cutoff(cutoff), m_minMAF(minMAF), m_scale(scale), m_binFactor(binFactor), m_counter{}
+    : m_snpLength(snpLength), m_cutoff(cutoff), m_minMAF(minMAF), m_scale(scale), m_binFactor(binFactor), m_counter{}, m_reachedEnd{}, m_outsideMaf{}, m_nanResults{}
 {}
 
 void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
@@ -32,7 +32,10 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
     {
         iHS = log(ehh.iHH_d/ehh.iHH_a);
         if (iHS == -std::numeric_limits<double>::infinity() || iHS == std::numeric_limits<double>::infinity())
+        {
+            ++m_nanResults;
             return;
+        }
     } else {
         iHS = NAN;
         return;
@@ -57,7 +60,7 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
 
 void IHSFinder::processXPEHH(std::pair<EHH,EHH> e, size_t line)
 {
-    if (e.first.iHH_d == 0.0 || e.second.iHH_d == 0)
+    if (e.first.iHH_d == 0.0 || e.second.iHH_d == 0.0)
         return;
     double xpehh = log(e.first.iHH_d/e.second.iHH_d);
     m_mutex.lock();
@@ -85,8 +88,16 @@ IHSFinder::LineMap IHSFinder::normalize()
     return m_standIHSSingle;
 }
 
-void IHSFinder::addData(const IHSFinder::LineMap& freqsBySite, const IHSFinder::LineMap& unStandIHSByLine, const IHSFinder::FreqVecMap& unStandIHSbyLine)
+void IHSFinder::addData(const IHSFinder::LineMap& freqsBySite, 
+                        const IHSFinder::LineMap& unStandIHSByLine, 
+                        const IHSFinder::FreqVecMap& unStandIHSbyLine, 
+                        unsigned long long reachedEnd, 
+                        unsigned long long outsideMaf,
+                        unsigned long long nanResults)
 {
+    m_reachedEnd += reachedEnd;
+    m_outsideMaf += outsideMaf;
+    m_nanResults += nanResults;
     m_mutex.lock();
     m_freqsByLine.insert(freqsBySite.begin(), freqsBySite.end());
     m_unStandIHSByLine.insert(unStandIHSByLine.begin(), unStandIHSByLine.end());
@@ -108,7 +119,7 @@ void IHSFinder::runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t 
         #pragma omp for schedule(dynamic,10)
         for(size_t i = start; i < end; ++i)
         {
-            std::pair<EHH,EHH> ehh = finder.findXPEHH(mA, mB, i);
+            std::pair<EHH,EHH> ehh = finder.findXPEHH(mA, mB, i, &m_reachedEnd);
             processXPEHH(ehh, i);
             ++m_counter;
             unsigned long long tmp = m_counter;
@@ -129,7 +140,7 @@ void IHSFinder::run(HapMap* map, std::size_t start, std::size_t end)
         #pragma omp for schedule(dynamic,10)
         for(size_t i = start; i < end; ++i)
         {
-            EHH ehh = finder.find(map, i);
+            EHH ehh = finder.find(map, i, &m_reachedEnd, &m_outsideMaf);
             processEHH(ehh, i);
             ++m_counter;
             unsigned long long tmp = m_counter;

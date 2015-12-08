@@ -21,13 +21,14 @@
 #define LLEHHFINDER_H
 #include "ehh.hpp"
 #include "hapmap.hpp"
+#include <atomic>
 
 class EHHFinder
 {
 public:
     EHHFinder(std::size_t SnpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale);
-    EHH find(HapMap* hapmap, std::size_t focus, bool ehhsave = false);
-    std::pair<EHH,EHH> findXPEHH(HapMap* hmA, HapMap *hmB, std::size_t focus);
+    EHH find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long long>* reachedEnd, std::atomic<unsigned long long>* outsideMaf, bool ehhsave = false);
+    std::pair<EHH,EHH> findXPEHH(HapMap* hmA, HapMap *hmB, std::size_t focus, std::atomic<unsigned long long>* reachedEnd);
     ~EHHFinder();
 protected:
     inline void calcBranch(HapMap* hm, std::size_t focus, HapMap::PrimitiveType* parent, std::size_t parentcount, HapMap::PrimitiveType* branch, std::size_t& branchcount, std::size_t currLine, double freq, double& probs, std::size_t& singlecount, bool* overflow);
