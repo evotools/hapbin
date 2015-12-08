@@ -129,7 +129,7 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
             out2 << hap.lineToId(it.first) << " " << it.second << std::endl;
         }
         std::cout << "# valid loci: " << res.size() << std::endl;
-        std::cout << "# loci with MAF < " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
+        std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
         std::cout << "# loci with NaN result: " << ihsfinder->numNanResults() << std::endl;
         std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;
     }
