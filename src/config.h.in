@@ -22,3 +22,5 @@
 #cmakedefine USE_MPI @USE_MPI@
 #define MPI_FOUND (HAVE_MPILIB && MPIRPC_FOUND && defined(USE_MPI))
 #cmakedefine VECLEN @VECLEN@
+#cmakedefine VERSION "@VERSION@"
+#cmakedefine VERSION_SHORT "@VERSION_SHORT@"

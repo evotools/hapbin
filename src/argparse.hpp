@@ -32,6 +32,7 @@
 #include <functional>
 #include <cstdlib>
 #include <climits>
+#include "config.h"
 
 bool arithParseErrorCheck(const char* optLong, const char* last)
 {
@@ -389,6 +390,10 @@ public:
                 std::cout << "-" << b->opt() << ",";
             std::cout << "--" << b->optLong() << "\t\t\t" << b->desc() << std::endl;
         }
+    }
+    void showVersion() const
+    {
+        std::cout << "Version: " << VERSION_SHORT << " (" << VERSION << ") " << std::endl;
     }
 protected:
     int m_current_argument;
