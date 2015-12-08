@@ -42,12 +42,16 @@ public:
     FreqVecMap unStdIHSByFreq() const { return m_unStandIHSByFreq; }
     LineMap    unStdIHSByLine() const { return m_unStandIHSByLine; }
     LineMap    freqsByLine() const    { return m_freqsByLine; }
+    unsigned long long numCompleted() const { return m_counter; }
+    unsigned long long numReachedEnd() const { return m_reachedEnd; }
+    unsigned long long numOutsideMaf() const { return m_outsideMaf; }
+    unsigned long long numNanResults() const { return m_nanResults; }
     
     void run(HapMap* map, std::size_t start, std::size_t end);
     void runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t end);
     LineMap normalize();
     
-    void addData(const LineMap& freqsBySite, const LineMap& unStandIHSByLine, const FreqVecMap& unStandIHSbyLine);
+    void addData(const LineMap& freqsBySite, const LineMap& unStandIHSByLine, const FreqVecMap& unStandIHSbyLine, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
     
 protected:
     void processEHH(const EHH& ehh, std::size_t line);
@@ -67,6 +71,9 @@ protected:
     LineMap    m_standIHSSingle;
     
     std::atomic<unsigned long long> m_counter;
+    std::atomic<unsigned long long> m_reachedEnd;
+    std::atomic<unsigned long long> m_outsideMaf;
+    std::atomic<unsigned long long> m_nanResults;
 };
 
 

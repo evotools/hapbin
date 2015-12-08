@@ -24,6 +24,7 @@
 #include "ehh.hpp"
 #include "argparse.hpp"
 #include "ehhfinder.hpp"
+#include <atomic>
 
 int main(int argc, char** argv)
 {
@@ -51,8 +52,10 @@ int main(int argc, char** argv)
         std::cerr << "no locus with the id: " << locus.value() << std::endl;
         return 2;
     }
+    std::atomic<unsigned long long> reachedEnd{};
+    std::atomic<unsigned long long> outsideMaf{};
     EHHFinder finder(hmap.snpDataSize(), hmap.snpDataSize(), 1000, cutoff.value(), minMAF.value(), (double) scale.value());
-    e = finder.find(&hmap, l, true);
+    e = finder.find(&hmap, l, &reachedEnd, &outsideMaf, true);
     e.printEHH(&hmap);
     std::cout << "iHS: " << log(e.iHH_a/e.iHH_d) << std::endl;
     std::cout << "MAF: " << (double)e.num/(double)hmap.snpLength() << std::endl;
