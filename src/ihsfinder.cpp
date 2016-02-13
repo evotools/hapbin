@@ -25,10 +25,12 @@ IHSFinder::IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double
 
 void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
 {
+    if (ehh.num + ehh.numNot != m_snpLength)
+        return;
+
     double freqs = 0.0;
     double iHS = 0.0;
-    freqs = nearest(m_binFactor, ehh.num/(double)m_snpLength);
-    if (freqs > 0 && ehh.iHH_a > 0)
+    if (ehh.iHH_a > 0)
     {
         iHS = log(ehh.iHH_d/ehh.iHH_a);
         if (iHS == -std::numeric_limits<double>::infinity() || iHS == std::numeric_limits<double>::infinity())
@@ -40,11 +42,10 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
         iHS = NAN;
         return;
     }
+
+    freqs = nearest(m_binFactor, ehh.num/(double)m_snpLength);
     
-    if (ehh.num + ehh.numNot != m_snpLength)
-        return;
-    
-    if (freqs > 0 && ehh.iHH_a > 0)
+    if (ehh.iHH_a > 0)
     {
         m_freqmutex.lock();
         
