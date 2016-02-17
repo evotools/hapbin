@@ -24,3 +24,7 @@
 #cmakedefine VECLEN @VECLEN@
 #cmakedefine VERSION "@VERSION@"
 #cmakedefine VERSION_SHORT "@VERSION_SHORT@"
+#if !defined(VERSION_SHORT) || !defined(VERSION)
+#define VERSION_SHORT "Live"
+#define VERSION "HEAD"
+#endif
