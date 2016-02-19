@@ -19,8 +19,8 @@
 
 #include "ihsfinder.hpp"
 
-IHSFinder::IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, double binFactor)
-    : m_snpLength(snpLength), m_cutoff(cutoff), m_minMAF(minMAF), m_scale(scale), m_binFactor(binFactor), m_counter{}, m_reachedEnd{}, m_outsideMaf{}, m_nanResults{}
+IHSFinder::IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, int bins)
+    : m_snpLength(snpLength), m_cutoff(cutoff), m_minMAF(minMAF), m_scale(scale), m_bins(bins), m_counter{}, m_reachedEnd{}, m_outsideMaf{}, m_nanResults{}
 {}
 
 void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
@@ -43,7 +43,7 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
         return;
     }
 
-    freqs = nearest(m_binFactor, ehh.num/(double)m_snpLength);
+    freqs = ((int) (m_bins*ehh.num/(double)m_snpLength))/(double)m_bins;
     
     if (ehh.iHH_a > 0)
     {

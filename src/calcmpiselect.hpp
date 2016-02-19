@@ -30,7 +30,7 @@
 #include <omp.h>
 #endif
 
-void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, double binFactor)
+void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, int binFactor)
 {
     std::cout << "Calculating iHS using MPI." << std::endl;
     HapMap hap;
@@ -138,7 +138,7 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
     delete manager;
 }
 
-void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, double binFactor)
+void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, int binFactor)
 {
     std::cout << "Calculating XPEHH using MPI." << std::endl;
     HapMap mA, mB;
