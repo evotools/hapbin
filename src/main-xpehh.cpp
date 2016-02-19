@@ -47,8 +47,9 @@ int main(int argc, char** argv)
     Argument<double> minMAF('f', "minmaf", "Minimum allele frequency (default: 0.05)", false, false, 0.00);
     Argument<int> binfac('b', "bin", "Number of frequency bins for iHS normalization (default: 50)", false, false, 50);
     Argument<unsigned long long> scale('s', "scale", "Gap scale parameter in bp, used to scale gaps > scale parameter as in Voight, et al.", false, false, 20000);
+    Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
     Argument<std::string> outfile('o', "out", "Output file", false, false, "out.txt");
-    ArgParse argparse({&help, &version, &hapA, &hapB, &map, &outfile, &cutoff, &minMAF, &scale, &binfac}, "Usage: xpehhbin --map input.map --hapA inputA.hap --hapB inputB.hap");
+    ArgParse argparse({&help, &version, &hapA, &hapB, &map, &outfile, &cutoff, &minMAF, &maxExtend, &scale, &binfac}, "Usage: xpehhbin --map input.map --hapA inputA.hap --hapB inputB.hap");
     if (!argparse.parseArguments(argc, argv)) 
     {
         ret = 1;
@@ -76,7 +77,7 @@ int main(int argc, char** argv)
     numSnps = HapMap::querySnpLength(hapB.value().c_str());
     std::cout << "Haplotypes in population B: " << numSnps << std::endl;
     
-    calcXpehh(hapA.value(), hapB.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), binfac.value());
+    calcXpehh(hapA.value(), hapB.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value());
 
 out:
 #if MPI_FOUND
