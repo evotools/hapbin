@@ -35,12 +35,15 @@ class IHSFinder
 {
 public:
     using LineMap = std::map<std::size_t, double>;
+    using IhsInfoMap = std::map<std::size_t, IhsScore>;
+    using XIhsInfoMap = std::map<std::size_t, XIhsScore>;
     using FreqVecMap = std::map<double, std::vector<double>>;
     using StatsMap = std::map<double, Stats>;
     
     IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, int bins);
     FreqVecMap unStdIHSByFreq() const { return m_unStandIHSByFreq; }
-    LineMap    unStdIHSByLine() const { return m_unStandIHSByLine; }
+    IhsInfoMap unStdIHSByLine() const { return m_unStandIHSByLine; }
+    XIhsInfoMap unStdXIHSByLine() const { return m_unStandXIHSByLine; }
     LineMap    freqsByLine() const    { return m_freqsByLine; }
     unsigned long long numCompleted() const { return m_counter; }
     unsigned long long numReachedEnd() const { return m_reachedEnd; }
@@ -51,7 +54,8 @@ public:
     void runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t end);
     LineMap normalize();
     
-    void addData(const LineMap& freqsBySite, const LineMap& unStandIHSByLine, const FreqVecMap& unStandIHSbyLine, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
+    void addData(const LineMap& freqsBySite, const IhsInfoMap& unStandIHSByLine, const FreqVecMap& unStandIHSByFreq, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
+    void addXData(const LineMap& freqsBySite, const XIhsInfoMap& unStandXIHSByLine, const FreqVecMap& unStandIHSByFreq, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
     
 protected:
     void processEHH(const EHH& ehh, std::size_t line);
@@ -66,7 +70,8 @@ protected:
     std::mutex m_mutex;
     std::mutex m_freqmutex;
     LineMap    m_freqsByLine;
-    LineMap    m_unStandIHSByLine;
+    IhsInfoMap m_unStandIHSByLine;
+    XIhsInfoMap m_unStandXIHSByLine;
     FreqVecMap m_unStandIHSByFreq;
     LineMap    m_standIHSSingle;
     

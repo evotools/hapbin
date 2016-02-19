@@ -22,12 +22,12 @@
 #include <algorithm>
 
 EHHFinder::EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale)
-    : m_maxSnpDataSize(snpDataSizeA)
-    , m_maxBreadth(maxBreadth)
+    : m_maxBreadth(maxBreadth)
     , m_bufferSize(snpDataSizeA*maxBreadth)
     , m_cutoff(cutoff)
     , m_minMAF(minMAF)
     , m_scale(scale)
+    , m_maxSnpDataSize(snpDataSizeA)
     , m_freqA{}
     , m_freqB{}
     , m_freqP{}
@@ -323,8 +323,8 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
             
             if (lastEhhP <= m_cutoff + 1e-15)
                 break;
-            ret.first.iHH_d  += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhA + m_ehhA)*scale*0.5;    
-            ret.second.iHH_d += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhB + m_ehhB)*scale*0.5;
+            ret.first.iHH_1  += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhA + m_ehhA)*scale*0.5;    
+            ret.second.iHH_1 += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhB + m_ehhB)*scale*0.5;
             
             lastEhhA = m_ehhA;
             lastEhhB = m_ehhB;
@@ -365,8 +365,8 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
         
         if (lastEhhP <= m_cutoff + 1e-15)
             break;
-        ret.first.iHH_d  += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhA + m_ehhA)*scale*0.5;    
-        ret.second.iHH_d += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhB + m_ehhB)*scale*0.5;
+        ret.first.iHH_1  += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhA + m_ehhA)*scale*0.5;    
+        ret.second.iHH_1 += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhB + m_ehhB)*scale*0.5;
         
         lastEhhA = m_ehhA;
         lastEhhB = m_ehhB;
@@ -495,9 +495,9 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
         stats.probsNot += probNotSingle*m_single0count;
 
         if (lastProbs > m_cutoff + 1e-15)
-            ret.iHH_d += (hapmap->geneticPosition(currLine+2)-hapmap->geneticPosition(currLine+1))*(lastProbs + stats.probs)*scale*0.5;    
+            ret.iHH_1 += (hapmap->geneticPosition(currLine+2)-hapmap->geneticPosition(currLine+1))*(lastProbs + stats.probs)*scale*0.5;    
         if (lastProbsNot > m_cutoff + 1e-15)
-            ret.iHH_a += (hapmap->geneticPosition(currLine+2)-hapmap->geneticPosition(currLine+1))*(lastProbsNot + stats.probsNot)*scale*0.5;   
+            ret.iHH_0 += (hapmap->geneticPosition(currLine+2)-hapmap->geneticPosition(currLine+1))*(lastProbsNot + stats.probsNot)*scale*0.5;   
         
         lastProbs = stats.probs;
         lastProbsNot = stats.probsNot;
@@ -533,10 +533,10 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
         stats.probsNot += probNotSingle*m_single0count;
         
         if (lastProbs > m_cutoff + 1e-15) {
-            ret.iHH_d += (hapmap->geneticPosition(currLine-1)-hapmap->geneticPosition(currLine-2))*(lastProbs + stats.probs)*scale*0.5;
+            ret.iHH_1 += (hapmap->geneticPosition(currLine-1)-hapmap->geneticPosition(currLine-2))*(lastProbs + stats.probs)*scale*0.5;
         }
         if (lastProbsNot > m_cutoff + 1e-15) {
-            ret.iHH_a += (hapmap->geneticPosition(currLine-1)-hapmap->geneticPosition(currLine-2))*(lastProbsNot + stats.probsNot)*scale*0.5;
+            ret.iHH_0 += (hapmap->geneticPosition(currLine-1)-hapmap->geneticPosition(currLine-2))*(lastProbsNot + stats.probsNot)*scale*0.5;
         }
         
         lastProbs = stats.probs;

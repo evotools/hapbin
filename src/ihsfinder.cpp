@@ -30,9 +30,9 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
 
     double freqs = 0.0;
     double iHS = 0.0;
-    if (ehh.iHH_a > 0)
+    if (ehh.iHH_0 > 0)
     {
-        iHS = log(ehh.iHH_d/ehh.iHH_a);
+        iHS = log(ehh.iHH_1/ehh.iHH_0);
         if (iHS == -std::numeric_limits<double>::infinity() || iHS == std::numeric_limits<double>::infinity())
         {
             ++m_nanResults;
@@ -45,7 +45,7 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
 
     freqs = ((int) (m_bins*ehh.num/(double)m_snpLength))/(double)m_bins;
     
-    if (ehh.iHH_a > 0)
+    if (ehh.iHH_0 > 0)
     {
         m_freqmutex.lock();
         
@@ -55,17 +55,17 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
     
     m_mutex.lock();
     m_freqsByLine[line] = freqs;
-    m_unStandIHSByLine[line] = iHS;
+    m_unStandIHSByLine[line] = IhsScore(iHS, ehh.iHH_0, ehh.iHH_1);
     m_mutex.unlock();
 }
 
 void IHSFinder::processXPEHH(std::pair<EHH,EHH> e, size_t line)
 {
-    if (e.first.iHH_d == 0.0 || e.second.iHH_d == 0.0)
+    if (e.first.iHH_1 == 0.0 || e.second.iHH_1 == 0.0)
         return;
-    double xpehh = log(e.first.iHH_d/e.second.iHH_d);
+    double xpehh = log(e.first.iHH_1/e.second.iHH_1);
     m_mutex.lock();
-    m_unStandIHSByLine[line] = xpehh;
+    m_unStandXIHSByLine[line] = XIhsScore(xpehh, e.first.iHH_0, e.first.iHH_1, e.second.iHH_0, e.second.iHH_1);
     m_mutex.unlock();
 }
 
@@ -83,15 +83,15 @@ IHSFinder::LineMap IHSFinder::normalize()
         double freq = m_freqsByLine[it.first];
         if (iHSStatsByFreq[freq].stddev == 0)
             continue;
-        m_standIHSSingle[it.first] = (it.second - iHSStatsByFreq[freq].mean)/iHSStatsByFreq[freq].stddev;
+        m_standIHSSingle[it.first] = (it.second.iHS - iHSStatsByFreq[freq].mean)/iHSStatsByFreq[freq].stddev;
     }
     
     return m_standIHSSingle;
 }
 
 void IHSFinder::addData(const IHSFinder::LineMap& freqsBySite, 
-                        const IHSFinder::LineMap& unStandIHSByLine, 
-                        const IHSFinder::FreqVecMap& unStandIHSbyLine, 
+                        const IHSFinder::IhsInfoMap& unStandIHSByLine, 
+                        const IHSFinder::FreqVecMap& unStandIHSByFreq, 
                         unsigned long long reachedEnd, 
                         unsigned long long outsideMaf,
                         unsigned long long nanResults)
@@ -104,7 +104,30 @@ void IHSFinder::addData(const IHSFinder::LineMap& freqsBySite,
     m_unStandIHSByLine.insert(unStandIHSByLine.begin(), unStandIHSByLine.end());
     m_mutex.unlock();
     m_freqmutex.lock();
-    for (auto pair : unStandIHSbyLine)
+    for (auto pair : unStandIHSByFreq)
+    {
+        std::vector<double>& v = m_unStandIHSByFreq[pair.first];
+        v.insert(v.end(), pair.second.begin(), pair.second.end());
+    }
+    m_freqmutex.unlock();
+}
+
+void IHSFinder::addXData(const IHSFinder::LineMap& freqsBySite, 
+                        const IHSFinder::XIhsInfoMap& unStandIHSByLine, 
+                        const IHSFinder::FreqVecMap& unStandIHSByFreq, 
+                        unsigned long long reachedEnd, 
+                        unsigned long long outsideMaf,
+                        unsigned long long nanResults)
+{
+    m_reachedEnd += reachedEnd;
+    m_outsideMaf += outsideMaf;
+    m_nanResults += nanResults;
+    m_mutex.lock();
+    m_freqsByLine.insert(freqsBySite.begin(), freqsBySite.end());
+    m_unStandXIHSByLine.insert(unStandIHSByLine.begin(), unStandIHSByLine.end());
+    m_mutex.unlock();
+    m_freqmutex.lock();
+    for (auto pair : unStandIHSByFreq)
     {
         std::vector<double>& v = m_unStandIHSByFreq[pair.first];
         v.insert(v.end(), pair.second.begin(), pair.second.end());
