@@ -21,9 +21,10 @@
 #include "hapmap.hpp"
 #include <algorithm>
 
-EHHFinder::EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale)
+EHHFinder::EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale, long long unsigned int maxExtend)
     : m_maxBreadth(maxBreadth)
     , m_bufferSize(snpDataSizeA*maxBreadth)
+    , m_maxExtend(maxExtend)
     , m_cutoff(cutoff)
     , m_minMAF(minMAF)
     , m_scale(scale)
@@ -301,6 +302,7 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
     double lastEhhB = f*f+(1.0-f)*(1.0-f);
     f = (ret.first.num+ret.second.num)*m_freqP;
     double lastEhhP = f*f+(1.0-f)*(1.0-f);
+    unsigned long long locusPysPos = hmA->physicalPosition(focus);
     
     setInitialXPEHH(focus);
     calcBranchesXPEHH(focus-1);
@@ -310,8 +312,8 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
     {
         for (std::size_t currLine = focus - 2;; --currLine)
         {
-            
-            double scale = (double)(m_scale) / (double)(hmA->physicalPosition(currLine+2) - hmA->physicalPosition(currLine+1));
+            unsigned long long currPhysPos = hmA->physicalPosition(currLine+1);
+            double scale = (double)(m_scale) / (double)(hmA->physicalPosition(currLine+2) - currPhysPos);
             if (scale > 1)
                 scale=1;
             
@@ -331,6 +333,8 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
             lastEhhP = m_ehhP;
             
             if ((m_single0count+m_single1count) == (hmA->snpLength()+hmB->snpLength()))
+                break;
+            if (m_maxExtend != 0 && locusPysPos - currPhysPos > m_maxExtend)
                 break;
             if(currLine == 0)
             {
@@ -353,7 +357,8 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
     m_single1count = 0ULL;
     for (std::size_t currLine = focus + 2; currLine < hmA->numSnps(); ++currLine)
     {
-        double scale = (double)(m_scale) / (double)(hmA->physicalPosition(currLine-1) - hmA->physicalPosition(currLine-2));
+        unsigned long long currPhysPos = hmA->physicalPosition(currLine-1);
+        double scale = (double)(m_scale) / (double)(currPhysPos - hmA->physicalPosition(currLine-2));
         if (scale > 1)
             scale=1;
         
@@ -373,6 +378,8 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
         lastEhhP = m_ehhP;
         
         if ((m_single0count+m_single1count) == (hmA->snpLength()+hmB->snpLength()))
+            break;
+        if (m_maxExtend != 0 && currPhysPos - locusPysPos > m_maxExtend)
             break;
         if (currLine == hmA->numSnps()-1)
         {
@@ -477,15 +484,16 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
     double freq1 = 1.0/(double)ret.num;
     double probSingle = freq1*freq1;
     double probNotSingle = freq0*freq0;
-    double probs, probsNot;
     double lastProbs = 1.0, lastProbsNot = 1.0;
+    unsigned long long locusPysPos = hapmap->physicalPosition(focus);
     
     setInitial(focus, focus-1);
     
     for (std::size_t currLine = focus - 2;; --currLine)
     {
         HapStats stats;
-        double scale = (double)(m_scale) / (double)(hapmap->physicalPosition(currLine+2) - hapmap->physicalPosition(currLine+1));
+        unsigned long long currPhysPos = hapmap->physicalPosition(currLine+1);
+        double scale = (double)(m_scale) / (double)(hapmap->physicalPosition(currLine+2) - currPhysPos);
         if (scale > 1)
             scale=1;
         
@@ -504,7 +512,10 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
         if (ehhsave)
             ret.upstream.push_back(std::move(stats));
         
-        
+        if (m_maxExtend != 0 && locusPysPos - currPhysPos > m_maxExtend) {
+            //std::cout << m_maxExtend << std::endl;
+            break;
+        }
         if (lastProbs <= m_cutoff + 1e-15 && lastProbsNot <= m_cutoff + 1e-15)
             break;
         if ((m_single0count+m_single1count) == hapmap->snpLength())
@@ -521,11 +532,10 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
     for (std::size_t currLine = focus + 2; currLine < hapmap->numSnps(); ++currLine)
     {
         HapStats stats;
+        unsigned long long currPhysPos = hapmap->physicalPosition(currLine-1);
         double scale = double(m_scale) / double(hapmap->physicalPosition(currLine-1) - hapmap->physicalPosition(currLine-2));
         if (scale > 1)
             scale=1;
-        
-        int core0 = 0, core1 = 0;
         
         calcBranches(hapmap, focus, currLine, freq0, freq1, stats);
         
@@ -544,7 +554,9 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
         if (ehhsave)
             ret.downstream.push_back(std::move(stats));
         
-        if (lastProbs <= m_cutoff + 1e-15 && lastProbsNot <= m_cutoff + 1e-15 || (m_single0count+m_single1count) == hapmap->snpLength())
+        if (m_maxExtend != 0 && currPhysPos - locusPysPos > m_maxExtend)
+            break;
+        if ((lastProbs <= m_cutoff + 1e-15 && lastProbsNot <= m_cutoff + 1e-15) || (m_single0count+m_single1count) == hapmap->snpLength())
             break;
         
         if (currLine == hapmap->numSnps()-1)

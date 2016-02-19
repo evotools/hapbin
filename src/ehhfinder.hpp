@@ -26,7 +26,7 @@
 class EHHFinder
 {
 public:
-    EHHFinder(std::size_t SnpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale);
+    explicit EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale, unsigned long long maxExtend);
     EHH find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long long>* reachedEnd, std::atomic<unsigned long long>* outsideMaf, bool ehhsave = false);
     std::pair<EHH,EHH> findXPEHH(HapMap* hmA, HapMap *hmB, std::size_t focus, std::atomic<unsigned long long>* reachedEnd);
     ~EHHFinder();
@@ -40,6 +40,7 @@ protected:
     
     std::size_t m_maxBreadth;
     std::size_t m_bufferSize;
+    unsigned long long m_maxExtend;
     HapMap::PrimitiveType *m_parent0;
     HapMap::PrimitiveType *m_parent1;
     HapMap::PrimitiveType *m_branch0;
