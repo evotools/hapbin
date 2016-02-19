@@ -20,6 +20,7 @@
 #include "hapmap.hpp"
 #include "ihsfinder.hpp"
 #include "hapbin.hpp"
+#include "ehh.hpp"
 
 #include "mpirpc/manager.hpp"
 #include "mpirpc/parameterstream.hpp"
@@ -29,6 +30,30 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+ParameterStream& operator<<(ParameterStream& out, const IhsScore& info)
+{
+    out << info.iHS << info.iHH_0 << info.iHH_1;
+    return out;
+}
+
+ParameterStream& operator>>(ParameterStream& in, IhsScore& info)
+{
+    in >> info.iHS >> info.iHH_0 >> info.iHH_1;
+    return in;
+}
+
+ParameterStream& operator<<(ParameterStream& out, const XIhsScore& info)
+{
+    out << info.iHS << info.iHH_0_a << info.iHH_1_a << info.iHH_0_b << info.iHH_1_b;
+    return out;
+}
+
+ParameterStream& operator>>(ParameterStream& in, XIhsScore& info)
+{
+    in >> info.iHS >> info.iHH_0_a >> info.iHH_1_a >> info.iHH_0_b >> info.iHH_1_b;
+    return in;
+}
 
 void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, int binFactor)
 {
@@ -118,15 +143,21 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
     
         IHSFinder::LineMap res = ihsfinder->normalize();
     
-        std::ofstream out(outfile);
-        for (const auto& it : ihsfinder->unStdIHSByLine())
+        auto unStd = ihsfinder->unStdIHSByLine();
+        
+        /*std::ofstream out(outfile);
+        out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
+        for (const auto& it : unStd)
         {
-            out << hap.lineToId(it.first) << " " << it.second << std::endl;
-        }
-        std::ofstream out2(outfile+".std");
+            out << hap.lineToId(it.first) << '\t' << it.second.iHH_0 << '\t' << it.second.iHH_1 << '\t' << it.second.iHS << std::endl;
+        }*/
+        std::ofstream out2(outfile);
+        out2 << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
+        
         for (const auto& it : res)
         {
-            out2 << hap.lineToId(it.first) << " " << it.second << std::endl;
+            auto s = unStd[it.first];
+            out2 << hap.lineToId(it.first) << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
         }
         std::cout << "# valid loci: " << res.size() << std::endl;
         std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
@@ -166,7 +197,7 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         --procsToGo;
     });
     manager->registerType<IHSFinder>();
-    manager->registerFunction(&IHSFinder::addData);
+    manager->registerFunction(&IHSFinder::addXData);
     if (manager->rank() == 0)
     {
         manager->registerObject(ihsfinder);
@@ -185,7 +216,7 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         std::cout << "Computing XPEHH for " << (end-start) << " lines on rank " << manager->rank() << std::endl;
         ihsfinder->runXpehh(&mA, &mB, start, end);
         IHSFinder::LineMap fbl = ihsfinder->freqsByLine();
-        manager->invokeFunction(mainihsfinder, &IHSFinder::addData, false, fbl, ihsfinder->unStdIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
+        manager->invokeFunction(mainihsfinder, &IHSFinder::addXData, false, fbl, ihsfinder->unStdXIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
         manager->invokeFunction(0, done);
     });
     manager->barrier();
@@ -232,9 +263,10 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
         
         std::ofstream out(outfile);
-        for (const auto& it : ihsfinder->unStdIHSByLine())
+        out << "Location\tiHH_0 A\tiHH_1 A\tiHH_0 B\tiHH_1 B\tXPEHH" << std::endl;
+        for (const auto& it : ihsfinder->unStdXIHSByLine())
         {
-            out << mA.lineToId(it.first) << " " << it.second << std::endl;
+            out << mA.lineToId(it.first) << '\t' << it.second.iHH_0_a << '\t' << it.second.iHH_1_a << '\t' << it.second.iHH_0_b << '\t' << it.second.iHH_1_b << std::endl;
         }
         std::cout << "# valid loci: " << ihsfinder->unStdIHSByLine().size() << std::endl;
         std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;

@@ -46,15 +46,21 @@ void calcIhsNoMpi(const std::string& hap, const std::string& map, const std::str
     auto diff = tend - start;
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
     
-    std::ofstream out(outfile);
-    for (const auto& it : ihsfinder->unStdIHSByLine())
+    auto unStd = ihsfinder->unStdIHSByLine();
+    
+    /*std::ofstream out(outfile);
+    out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
+    for (const auto& it : unStd)
     {
-        out << ctcmap.lineToId(it.first) << " " << it.second << std::endl;
-    }
-    std::ofstream out2(outfile+".std");
+        out << ctcmap.lineToId(it.first) << '\t' << it.second.iHH_0 << '\t' << it.second.iHH_1 << '\t' << it.second.iHS << std::endl;
+    }*/
+    std::ofstream out2(outfile);
+    out2 << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
+    
     for (const auto& it : res)
     {
-        out2 << ctcmap.lineToId(it.first) << " " << it.second << std::endl;
+        auto s = unStd[it.first];
+        out2 << ctcmap.lineToId(it.first) << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
     }
     std::cout << "# valid loci: " << res.size() << std::endl;
     std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
@@ -89,9 +95,10 @@ void calcXpehhNoMpi(const std::string& hapA, const std::string& hapB, const std:
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
     
     std::ofstream out(outfile);
-    for (const auto& it : ihsfinder->unStdIHSByLine())
+    out << "Location\tiHH_0 A\tiHH_1 A\tiHH_0 B\tiHH_1 B\tXPEHH" << std::endl;
+    for (const auto& it : ihsfinder->unStdXIHSByLine())
     {
-        out << hA.lineToId(it.first) << " " << it.second << std::endl;
+        out << hA.lineToId(it.first) << '\t' << it.second.iHH_0_a << '\t' << it.second.iHH_1_a << '\t' << it.second.iHH_0_b << '\t' << it.second.iHH_1_b << std::endl;
     }
 
     std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdIHSByLine().size() << std::endl;

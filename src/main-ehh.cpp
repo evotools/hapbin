@@ -75,6 +75,6 @@ int main(int argc, char** argv)
     EHHFinder finder(hmap.snpDataSize(), hmap.snpDataSize(), 1000, cutoff.value(), minMAF.value(), (double) scale.value());
     e = finder.find(&hmap, l, &reachedEnd, &outsideMaf, true);
     e.printEHH(&hmap);
-    std::cout << "iHS: " << log(e.iHH_a/e.iHH_d) << std::endl;
+    std::cout << "iHS: " << log(e.iHH_0/e.iHH_1) << std::endl;
     std::cout << "MAF: " << (double)e.num/(double)hmap.snpLength() << std::endl;
 }
