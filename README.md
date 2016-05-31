@@ -18,6 +18,10 @@ For additional options, see `[executable] --help`.
 
 This code is licensed under the GPL v3. Copyright is retained by the original authors, Colin Maclean and the University of Edinburgh.
 
+## Citation ##
+
+Maclean CA, Chue Hong NP, Prendergast JG. hapbin: An Efficient Program for Performing Haplotype-Based Scans for Positive Selection in Large Genomic Datasets. Mol Biol Evol. 2015 Nov;32(11):3027-9. [doi: 10.1093/molbev/msv172](http://mbe.oxfordjournals.org/content/32/11/3027)
+
 ## Building from source code ##
 
 ### Dependencies ###
