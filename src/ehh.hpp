@@ -113,9 +113,6 @@ struct XPEHH
         , iHH_A1(0.0)
         , iHH_B1(0.0)
         , iHH_P1(0.0)
-        , sl_A1(0.0)
-        , sl_B1(0.0)
-        , sl_P1(0.0)
     {}
     std::size_t index;
 
@@ -129,10 +126,6 @@ struct XPEHH
     double iHH_A1;
     double iHH_B1;
     double iHH_P1;
-
-    double sl_A1;
-    double sl_B1;
-    double sl_P1;
 };
 
 struct IhsScore

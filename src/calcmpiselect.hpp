@@ -45,13 +45,13 @@ ParameterStream& operator>>(ParameterStream& in, IhsScore& info)
 
 ParameterStream& operator<<(ParameterStream& out, const XPEHH& info)
 {
-    out << info.index << info.xpehh << info.numA << info.numB << info.numNotA << info.numNotB << info.iHH_A1 << info.iHH_B1 << info.iHH_P1 << info.sl_A1 << info.sl_B1 << info.sl_P1;
+    out << info.index << info.xpehh << info.numA << info.numB << info.numNotA << info.numNotB << info.iHH_A1 << info.iHH_B1 << info.iHH_P1;
     return out;
 }
 
 ParameterStream& operator>>(ParameterStream& in, XPEHH& info)
 {
-    in >> info.index >> info.xpehh >> info.numA >> info.numB >> info.numNotA >> info.numNotB >>  info.iHH_A1 >> info.iHH_B1 >> info.iHH_P1 >> info.sl_A1 >> info.sl_B1 >> info.sl_P1;
+    in >> info.index >> info.xpehh >> info.numA >> info.numB >> info.numNotA >> info.numNotB >>  info.iHH_A1 >> info.iHH_B1 >> info.iHH_P1;
     return in;
 }
 
@@ -263,10 +263,10 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
         
         std::ofstream out(outfile);
-        out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tsl_A1\tsl_B1\tsl_P1\tXPnSl" << std::endl;
+        out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH" << std::endl;
         for (const auto& it : ihsfinder->unStdXIHSByLine())
         {
-            out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << it.second.sl_A1 << '\t' << it.second.sl_B1 << '\t' << it.second.sl_P1 << '\t' << log(it.second.sl_A1/it.second.sl_B1) << std::endl;
+            out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << std::endl;
         }
         std::cout << "# valid loci: " << ihsfinder->unStdXIHSByLine().size() << std::endl;
     }

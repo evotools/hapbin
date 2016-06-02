@@ -95,10 +95,10 @@ void calcXpehhNoMpi(const std::string& hapA, const std::string& hapB, const std:
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
     
     std::ofstream out(outfile);
-    out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tsl_A1\tsl_B1\tsl_P1\tXPnSl" << std::endl;
+    out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH" << std::endl;
     for (const auto& it : ihsfinder->unStdXIHSByLine())
     {
-        out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << it.second.sl_A1 << '\t' << it.second.sl_B1 << '\t' << it.second.sl_P1 << '\t' << log(it.second.sl_A1/it.second.sl_B1) << std::endl;
+        out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << std::endl;
     }
 
     std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdXIHSByLine().size() << std::endl;

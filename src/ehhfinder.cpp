@@ -327,13 +327,6 @@ XPEHH EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t focus, std::ato
             ret.iHH_B1 += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhB + m_ehhB)*scale*0.5;
             ret.iHH_P1 += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhP + m_ehhP)*scale*0.5;
 
-            if (m_ehhA < lastEhhA)
-                ret.sl_A1 += m_ehhA;
-            if (m_ehhB < lastEhhB)
-                ret.sl_B1 += m_ehhB;
-            if (m_ehhP < lastEhhP)
-                ret.sl_P1 += m_ehhP;
-            
             lastEhhA = m_ehhA;
             lastEhhB = m_ehhB;
             lastEhhP = m_ehhP;
@@ -377,13 +370,6 @@ XPEHH EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t focus, std::ato
         ret.iHH_B1 += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhB + m_ehhB)*scale*0.5;
         ret.iHH_P1 += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhP + m_ehhP)*scale*0.5;
 
-        if (m_ehhA < lastEhhA)
-            ret.sl_A1 += m_ehhA;
-        if (m_ehhB < lastEhhB)
-            ret.sl_B1 += m_ehhB;
-        if (m_ehhP < lastEhhP)
-            ret.sl_P1 += m_ehhP;
-        
         lastEhhA = m_ehhA;
         lastEhhB = m_ehhB;
         lastEhhP = m_ehhP;
