@@ -101,6 +101,40 @@ struct EHH
     }
 };
 
+struct XPEHH
+{
+    XPEHH()
+        : index(0ULL)
+        , xpehh(0.0)
+        , numA(0)
+        , numB(0)
+        , numNotA(0)
+        , numNotB(0)
+        , iHH_A1(0.0)
+        , iHH_B1(0.0)
+        , iHH_P1(0.0)
+        , sl_A1(0.0)
+        , sl_B1(0.0)
+        , sl_P1(0.0)
+    {}
+    std::size_t index;
+
+    double xpehh;
+
+    int numA;
+    int numB;
+    int numNotA;
+    int numNotB;
+
+    double iHH_A1;
+    double iHH_B1;
+    double iHH_P1;
+
+    double sl_A1;
+    double sl_B1;
+    double sl_P1;
+};
+
 struct IhsScore
 {
     IhsScore() : iHS(0.0), iHH_0(0.0), iHH_1(0.0) {}
@@ -108,17 +142,6 @@ struct IhsScore
     double iHS;
     double iHH_0;
     double iHH_1;
-};
-
-struct XIhsScore
-{
-    XIhsScore() : iHS(0.0), iHH_0_a(0.0), iHH_1_a(0.0), iHH_0_b(0.0), iHH_1_b(0.0) {}
-    XIhsScore(double s, double a1, double d1, double a2, double d2) : iHS(s), iHH_0_a(a1), iHH_1_a(d1), iHH_0_b(a2), iHH_1_b(d2) {}
-    double iHS;
-    double iHH_0_a;
-    double iHH_1_a;
-    double iHH_0_b;
-    double iHH_1_b;
 };
 
 #endif // EHH_HPP

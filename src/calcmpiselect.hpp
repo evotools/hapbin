@@ -43,15 +43,15 @@ ParameterStream& operator>>(ParameterStream& in, IhsScore& info)
     return in;
 }
 
-ParameterStream& operator<<(ParameterStream& out, const XIhsScore& info)
+ParameterStream& operator<<(ParameterStream& out, const XPEHH& info)
 {
-    out << info.iHS << info.iHH_0_a << info.iHH_1_a << info.iHH_0_b << info.iHH_1_b;
+    out << info.index << info.xpehh << info.numA << info.numB << info.numNotA << info.numNotB << info.iHH_A1 << info.iHH_B1 << info.iHH_P1 << info.sl_A1 << info.sl_B1 << info.sl_P1;
     return out;
 }
 
-ParameterStream& operator>>(ParameterStream& in, XIhsScore& info)
+ParameterStream& operator>>(ParameterStream& in, XPEHH& info)
 {
-    in >> info.iHS >> info.iHH_0_a >> info.iHH_1_a >> info.iHH_0_b >> info.iHH_1_b;
+    in >> info.index >> info.xpehh >> info.numA >> info.numB >> info.numNotA >> info.numNotB >>  info.iHH_A1 >> info.iHH_B1 >> info.iHH_P1 >> info.sl_A1 >> info.sl_B1 >> info.sl_P1;
     return in;
 }
 
@@ -263,13 +263,12 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
         
         std::ofstream out(outfile);
-        out << "Location\tiHH_0 A\tiHH_1 A\tiHH_0 B\tiHH_1 B\tXPEHH" << std::endl;
+        out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tsl_A1\tsl_B1\tsl_P1\tXPnSl" << std::endl;
         for (const auto& it : ihsfinder->unStdXIHSByLine())
         {
-            out << mA.lineToId(it.first) << '\t' << it.second.iHH_0_a << '\t' << it.second.iHH_1_a << '\t' << it.second.iHH_0_b << '\t' << it.second.iHH_1_b << std::endl;
+            out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << it.second.sl_A1 << '\t' << it.second.sl_B1 << '\t' << it.second.sl_P1 << '\t' << log(it.second.sl_A1/it.second.sl_B1) << std::endl;
         }
-        std::cout << "# valid loci: " << ihsfinder->unStdIHSByLine().size() << std::endl;
-        std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;
+        std::cout << "# valid loci: " << ihsfinder->unStdXIHSByLine().size() << std::endl;
     }
     delete ihsfinder;
     delete manager;

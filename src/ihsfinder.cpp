@@ -59,13 +59,13 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
     m_mutex.unlock();
 }
 
-void IHSFinder::processXPEHH(std::pair<EHH,EHH> e, size_t line)
+void IHSFinder::processXPEHH(XPEHH& e, size_t line)
 {
-    if (e.first.iHH_1 == 0.0 || e.second.iHH_1 == 0.0)
+    if (e.iHH_A1 == 0.0 || e.iHH_B1 == 0.0)
         return;
-    double xpehh = log(e.first.iHH_1/e.second.iHH_1);
+    e.xpehh = log(e.iHH_A1/e.iHH_B1);
     m_mutex.lock();
-    m_unStandXIHSByLine[line] = XIhsScore(xpehh, e.first.iHH_0, e.first.iHH_1, e.second.iHH_0, e.second.iHH_1);
+    m_unStandXIHSByLine[line] = std::move(e);
     m_mutex.unlock();
 }
 
@@ -143,8 +143,8 @@ void IHSFinder::runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t 
         #pragma omp for schedule(dynamic,10)
         for(size_t i = start; i < end; ++i)
         {
-            std::pair<EHH,EHH> ehh = finder.findXPEHH(mA, mB, i, &m_reachedEnd);
-            processXPEHH(ehh, i);
+            XPEHH xpehh = finder.findXPEHH(mA, mB, i, &m_reachedEnd);
+            processXPEHH(xpehh, i);
             ++m_counter;
             unsigned long long tmp = m_counter;
             if (tmp % 1000 == 0)

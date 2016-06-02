@@ -251,7 +251,7 @@ void EHHFinder::calcBranchesXPEHH(std::size_t currLine)
     std::swap(m_parent1, m_branch1);
 }
 
-std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t focus, std::atomic<unsigned long long>* reachedEnd)
+XPEHH EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t focus, std::atomic<unsigned long long>* reachedEnd)
 {
     m_hmA = hmA;
     m_hmB = hmB;
@@ -277,29 +277,29 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
     m_branch1count = 0ULL;
     m_single0count = 0ULL;
     m_single1count = 0ULL;
-    std::pair<EHH,EHH> ret;
-    ret.first.index = focus;
+    XPEHH ret;
+    ret.index = focus;
     for(std::size_t i = 0; i < m_snpDataSizeA; ++i)
     {
-        ret.first.num += POPCOUNT(m_hdA[focus*m_snpDataSizeA+i]);
+        ret.numA += POPCOUNT(m_hdA[focus*m_snpDataSizeA+i]);
     }
-    ret.first.numNot = hmA->snpLength() - ret.first.num;
+    ret.numNotA = hmA->snpLength() - ret.numA;
     for(std::size_t i = 0; i < m_snpDataSizeB; ++i)
     {
-        ret.second.num += POPCOUNT(m_hdB[focus*m_snpDataSizeB+i]);
+        ret.numB += POPCOUNT(m_hdB[focus*m_snpDataSizeB+i]);
     }
-    ret.second.numNot = hmA->snpLength() - ret.first.num;
+    ret.numNotB = hmA->snpLength() - ret.numB;
     m_freqA = 1.0/(double)hmA->snpLength();
     m_freqB = 1.0/(double)hmB->snpLength();
     m_freqP = 1.0/(double)(hmA->snpLength()+hmB->snpLength());
     double probASingle = m_freqA*m_freqA;
     double probBSingle = m_freqB*m_freqB;
     double probPSingle = m_freqP*m_freqP;
-    double f = ret.first.num*m_freqA;
+    double f = ret.numA*m_freqA;
     double lastEhhA = f*f+(1.0-f)*(1.0-f);
-    f = ret.second.num*m_freqB;
+    f = ret.numB*m_freqB;
     double lastEhhB = f*f+(1.0-f)*(1.0-f);
-    f = (ret.first.num+ret.second.num)*m_freqP;
+    f = (ret.numA+ret.numB)*m_freqP;
     double lastEhhP = f*f+(1.0-f)*(1.0-f);
     
     setInitialXPEHH(focus);
@@ -323,8 +323,16 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
             
             if (lastEhhP <= m_cutoff + 1e-15)
                 break;
-            ret.first.iHH_1  += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhA + m_ehhA)*scale*0.5;    
-            ret.second.iHH_1 += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhB + m_ehhB)*scale*0.5;
+            ret.iHH_A1 += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhA + m_ehhA)*scale*0.5;
+            ret.iHH_B1 += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhB + m_ehhB)*scale*0.5;
+            ret.iHH_P1 += (hmA->geneticPosition(currLine+2)-hmA->geneticPosition(currLine+1))*(lastEhhP + m_ehhP)*scale*0.5;
+
+            if (m_ehhA < lastEhhA)
+                ret.sl_A1 += m_ehhA;
+            if (m_ehhB < lastEhhB)
+                ret.sl_B1 += m_ehhB;
+            if (m_ehhP < lastEhhP)
+                ret.sl_P1 += m_ehhP;
             
             lastEhhA = m_ehhA;
             lastEhhB = m_ehhB;
@@ -335,16 +343,16 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
             if(currLine == 0)
             {
                 ++(*reachedEnd);
-                return std::pair<EHH,EHH>();
+                return XPEHH();
             }
         }
     }
     
-    f = ret.first.num*m_freqA;
+    f = ret.numA*m_freqA;
     lastEhhA = f*f+(1.0-f)*(1.0-f);
-    f = ret.second.num*m_freqB;
+    f = ret.numB*m_freqB;
     lastEhhB = f*f+(1.0-f)*(1.0-f);
-    f = (ret.first.num+ret.second.num)*m_freqP;
+    f = (ret.numA+ret.numB)*m_freqP;
     lastEhhP = f*f+(1.0-f)*(1.0-f);
     
     setInitialXPEHH(focus);
@@ -365,8 +373,16 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
         
         if (lastEhhP <= m_cutoff + 1e-15)
             break;
-        ret.first.iHH_1  += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhA + m_ehhA)*scale*0.5;    
-        ret.second.iHH_1 += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhB + m_ehhB)*scale*0.5;
+        ret.iHH_A1 += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhA + m_ehhA)*scale*0.5;
+        ret.iHH_B1 += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhB + m_ehhB)*scale*0.5;
+        ret.iHH_P1 += (hmA->geneticPosition(currLine-1)-hmA->geneticPosition(currLine-2))*(lastEhhP + m_ehhP)*scale*0.5;
+
+        if (m_ehhA < lastEhhA)
+            ret.sl_A1 += m_ehhA;
+        if (m_ehhB < lastEhhB)
+            ret.sl_B1 += m_ehhB;
+        if (m_ehhP < lastEhhP)
+            ret.sl_P1 += m_ehhP;
         
         lastEhhA = m_ehhA;
         lastEhhB = m_ehhB;
@@ -377,7 +393,7 @@ std::pair< EHH, EHH > EHHFinder::findXPEHH(HapMap* hmA, HapMap* hmB, std::size_t
         if (currLine == hmA->numSnps()-1)
         {
             ++(*reachedEnd);
-            return std::pair<EHH,EHH>();
+            return XPEHH();
         }
     }
     return ret;
