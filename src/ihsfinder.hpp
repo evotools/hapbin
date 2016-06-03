@@ -36,7 +36,7 @@ class IHSFinder
 public:
     using LineMap = std::map<std::size_t, double>;
     using IhsInfoMap = std::map<std::size_t, IhsScore>;
-    using XIhsInfoMap = std::map<std::size_t, XIhsScore>;
+    using XIhsInfoMap = std::map<std::size_t, XPEHH>;
     using FreqVecMap = std::map<double, std::vector<double>>;
     using StatsMap = std::map<double, Stats>;
     
@@ -59,7 +59,7 @@ public:
     
 protected:
     void processEHH(const EHH& ehh, std::size_t line);
-    void processXPEHH(std::pair< EHH, EHH > e, size_t line);
+    void processXPEHH(XPEHH& e, size_t line);
     
     std::size_t m_snpLength;
     double m_cutoff;
