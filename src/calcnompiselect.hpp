@@ -98,7 +98,7 @@ void calcXpehhNoMpi(const std::string& hapA, const std::string& hapB, const std:
     out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH" << std::endl;
     for (const auto& it : ihsfinder->unStdXIHSByLine())
     {
-        out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << std::endl;
+        out << hA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << std::endl;
     }
 
     std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdXIHSByLine().size() << std::endl;
