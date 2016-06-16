@@ -106,7 +106,7 @@ The map files (`--map`) should be in the same format as used by [Selscan](https:
 
 - ehhbin outputs five columns. The first three being the locus' ID and its genetic and physical positions. These are followed by two columns corresponding to the EHH for each of the alleles at this locus (allele coded as 0 then 1).
 - ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
-- xpehh also outputs a file containing two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
+- xpehh outputs a file containing five columns: the SNP locus id (as specified in the map file), corresponding iHH values and finally the XP-EHH value.
 
 ### Examples ###
 
