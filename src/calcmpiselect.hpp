@@ -55,7 +55,7 @@ ParameterStream& operator>>(ParameterStream& in, XPEHH& info)
     return in;
 }
 
-void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, int binFactor)
+void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, int binFactor, bool binom)
 {
     std::cout << "Calculating iHS using MPI." << std::endl;
     HapMap hap;
@@ -94,7 +94,10 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
     mpirpc::ObjectWrapperBase* mainihsfinder = *(manager->getObjectsOfType<IHSFinder>().cbegin());
     mpirpc::FunctionHandle runEHH =  manager->registerLambda([&](std::size_t start, std::size_t end) {
         std::cout << "Computing EHH for " << (end-start) << " lines on rank " << manager->rank() << std::endl;
-        ihsfinder->run(&hap, start, end);
+        if (binom)
+            ihsfinder->run<true>(&hap, start, end);
+        else
+            ihsfinder->run<false>(&hap, start, end);
         IHSFinder::LineMap fbl = ihsfinder->freqsByLine();
         manager->invokeFunction(mainihsfinder, &IHSFinder::addData, false, fbl, ihsfinder->unStdIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
         manager->invokeFunction(0, done);
@@ -125,7 +128,10 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
         std::size_t end = snpsPerRank;
         if (manager->numProcs() == 1)
             end = numSnps;
-        ihsfinder->run(&hap, 0UL, end);
+        if (binom)
+            ihsfinder->run<true>(&hap, 0UL, end);
+        else
+            ihsfinder->run<false>(&hap, 0UL, end);
         --procsToGo;
     }
     
@@ -169,7 +175,7 @@ void calcIhsMpi(const std::string& hapfile, const std::string& mapfile, const st
     delete manager;
 }
 
-void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, int binFactor)
+void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::string& mapfile, const std::string& outfile, double cutoff, double minMAF, double scale, int binFactor, bool binom)
 {
     std::cout << "Calculating XPEHH using MPI." << std::endl;
     HapMap mA, mB;
@@ -214,7 +220,10 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
     mpirpc::ObjectWrapperBase* mainihsfinder = *(manager->getObjectsOfType<IHSFinder>().cbegin());
     mpirpc::FunctionHandle runXPEHH =  manager->registerLambda([&](std::size_t start, std::size_t end) {
         std::cout << "Computing XPEHH for " << (end-start) << " lines on rank " << manager->rank() << std::endl;
-        ihsfinder->runXpehh(&mA, &mB, start, end);
+        if (binom)
+            ihsfinder->runXpehh<true>(&mA, &mB, start, end);
+        else
+            ihsfinder->runXpehh<false>(&mA, &mB, start, end);
         IHSFinder::LineMap fbl = ihsfinder->freqsByLine();
         manager->invokeFunction(mainihsfinder, &IHSFinder::addXData, false, fbl, ihsfinder->unStdXIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
         manager->invokeFunction(0, done);
@@ -246,7 +255,10 @@ void calcXpehhMpi(const std::string& hapA, const std::string& hapB, const std::s
         std::size_t end = snpsPerRank;
         if (manager->numProcs() == 1)
             end = numSnps;
-        ihsfinder->runXpehh(&mA, &mB, 0ULL, end);
+        if (binom)
+            ihsfinder->runXpehh<true>(&mA, &mB, 0ULL, end);
+        else
+            ihsfinder->runXpehh<false>(&mA, &mB, 0ULL, end);
         --procsToGo;
     }
     

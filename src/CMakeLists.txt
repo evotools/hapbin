@@ -78,7 +78,7 @@ endif(MPI_FOUND AND USE_MPI)
 
 configure_file("${PROJECT_SOURCE_DIR}/config.h.in" "${PROJECT_BINARY_DIR}/config.h")
 
-set(core_SRCS ehhfinder.cpp ihsfinder.cpp hapmap.cpp hapbin.cpp)
+set(core_SRCS ehhfinder.cpp ihsfinder.cpp ehhfinder.cpp hapmap.cpp hapbin.cpp ehhfinder-impl.hpp)
 add_library(hapbin SHARED ${core_SRCS})
 set_target_properties(hapbin PROPERTIES VERSION 0 SOVERSION 0.0.0)
 
@@ -109,7 +109,7 @@ install(TARGETS ihsbin DESTINATION bin)
 install(TARGETS ehhbin DESTINATION bin)
 install(TARGETS xpehhbin DESTINATION bin)
 install(TARGETS hapbinconv DESTINATION bin)
-install(FILES calcmpiselect.hpp calcnompiselect.hpp calcselect.hpp argparse.hpp hapmap.hpp hapbin.hpp ihsfinder.hpp ehhfinder.hpp DESTINATION include/hapbin)
+install(FILES calcmpiselect.hpp calcnompiselect.hpp calcselect.hpp argparse.hpp hapmap.hpp hapbin.hpp ihsfinder.hpp ihsfinder-impl.hpp ehhfinder-impl.hpp DESTINATION include/hapbin)
 
 include(InstallRequiredSystemLibraries)
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hapbin is a fast and efficient implementation of EHH and iHS calculations using a bitwise algorithm.")

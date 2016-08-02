@@ -30,9 +30,9 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
 
     double freqs = 0.0;
     double iHS = 0.0;
-    if (ehh.iHH_0 > 0)
+    if (ehh.iHH_1 > 0)
     {
-        iHS = log(ehh.iHH_1/ehh.iHH_0);
+        iHS = log(ehh.iHH_0/ehh.iHH_1);
         if (iHS == -std::numeric_limits<double>::infinity() || iHS == std::numeric_limits<double>::infinity())
         {
             ++m_nanResults;
@@ -45,7 +45,7 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
 
     freqs = ((int) (m_bins*ehh.num/(double)m_snpLength))/(double)m_bins;
     
-    if (ehh.iHH_0 > 0)
+    if (ehh.iHH_1 > 0)
     {
         m_freqmutex.lock();
         
@@ -78,11 +78,11 @@ IHSFinder::LineMap IHSFinder::normalize()
         iHSStatsByFreq[it.first] = stats(it.second);
     }
     
+    std::cout << m_unStandIHSByLine.size() << std::endl;
     for (const auto& it : m_unStandIHSByLine)
     {
+        std::cout << it.first << " " << it.second.iHS << std::endl;
         double freq = m_freqsByLine[it.first];
-        if (iHSStatsByFreq[freq].stddev == 0)
-            continue;
         m_standIHSSingle[it.first] = (it.second.iHS - iHSStatsByFreq[freq].mean)/iHSStatsByFreq[freq].stddev;
     }
     
@@ -133,46 +133,4 @@ void IHSFinder::addXData(const IHSFinder::LineMap& freqsBySite,
         v.insert(v.end(), pair.second.begin(), pair.second.end());
     }
     m_freqmutex.unlock();
-}
-
-void IHSFinder::runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t end)
-{
-    #pragma omp parallel shared(mA,mB,start,end)
-    {
-        EHHFinder finder(mA->snpDataSize(), mB->snpDataSize(), 2000, m_cutoff, m_minMAF, m_scale);
-        #pragma omp for schedule(dynamic,10)
-        for(size_t i = start; i < end; ++i)
-        {
-            XPEHH xpehh = finder.findXPEHH(mA, mB, i, &m_reachedEnd);
-            processXPEHH(xpehh, i);
-            ++m_counter;
-            unsigned long long tmp = m_counter;
-            if (tmp % 1000 == 0)
-            {
-                std::cout << '\r' << tmp << "/" << (end-start);
-            }
-        }
-    }
-    std::cout << std::endl;
-}
-
-void IHSFinder::run(HapMap* map, std::size_t start, std::size_t end)
-{
-    #pragma omp parallel shared(map, start, end)
-    {
-        EHHFinder finder(map->snpDataSize(), map->snpDataSize(), 2000, m_cutoff, m_minMAF, m_scale);
-        #pragma omp for schedule(dynamic,10)
-        for(size_t i = start; i < end; ++i)
-        {
-            EHH ehh = finder.find(map, i, &m_reachedEnd, &m_outsideMaf);
-            processEHH(ehh, i);
-            ++m_counter;
-            unsigned long long tmp = m_counter;
-            if (tmp % 1000 == 0)
-            {
-                std::cout << '\r' << tmp << "/" << (end-start);
-            }
-        }
-    }
-    std::cout << std::endl;
 }

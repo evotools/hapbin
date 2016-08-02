@@ -50,7 +50,9 @@ public:
     unsigned long long numOutsideMaf() const { return m_outsideMaf; }
     unsigned long long numNanResults() const { return m_nanResults; }
     
+    template <bool Binom>
     void run(HapMap* map, std::size_t start, std::size_t end);
+    template <bool Binom>
     void runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t end);
     LineMap normalize();
     
@@ -81,5 +83,6 @@ protected:
     std::atomic<unsigned long long> m_nanResults;
 };
 
+#include "ihsfinder-impl.hpp"
 
 #endif // IHSFINDER_H

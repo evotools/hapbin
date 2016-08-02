@@ -40,6 +40,11 @@ void* aligned_alloc(size_t alignment, size_t size)
 }
 #endif
 
+double binom_2(double n)
+{
+    return n*(n-1.0)*0.5;
+}
+
 double nearest(double target, double number)
 {
     if (target == 0)

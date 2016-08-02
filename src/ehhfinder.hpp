@@ -27,18 +27,27 @@ class EHHFinder
 {
 public:
     EHHFinder(std::size_t SnpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale);
+    template <bool Binom>
     EHH find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long long>* reachedEnd, std::atomic<unsigned long long>* outsideMaf, bool ehhsave = false);
+    template <bool Binom>
     XPEHH findXPEHH(HapMap* hmA, HapMap *hmB, std::size_t focus, std::atomic<unsigned long long>* reachedEnd);
     ~EHHFinder();
 protected:
-    inline void calcBranch(HapMap* hm, std::size_t focus, HapMap::PrimitiveType* parent, std::size_t parentcount, HapMap::PrimitiveType* branch, std::size_t& branchcount, std::size_t currLine, double freq, double& probs, std::size_t& singlecount, bool* overflow);
+    template <bool Binom>
+    inline void calcBranch(HapMap* hm, HapMap::PrimitiveType* parent, std::size_t parentcount, HapMap::PrimitiveType* branch, std::size_t& branchcount, std::size_t currLine, double freq, double& probs, std::size_t& singlecount, std::size_t maxBreadth, bool* overflow);
+    template <bool Binom>
     inline void calcBranchXPEHH(HapMap* hmA, HapMap* hmB, std::size_t currLine, std::size_t& single0, std::size_t& single1, bool* overflow);
-    inline void setInitial(std::size_t focus, std::size_t line);
-    inline void setInitialXPEHH(std::size_t focus);
+    template <bool Binom>
+    inline void calcBranchP(std::size_t currLine, std::size_t& singleA, std::size_t& singleB, std::size_t& singleP, bool* overflow);
+    void setInitial(std::size_t focus, std::size_t line);
+    void setInitialXPEHH(std::size_t focus);
+    template <bool Binom>
     inline void calcBranches(HapMap* hapmap, std::size_t focus, std::size_t currLine, double freq0, double freq1, HapStats& stats);
+    template <bool Binom>
     inline void calcBranchesXPEHH(std::size_t currLine);
     
-    std::size_t m_maxBreadth;
+    std::size_t m_maxBreadth0;
+    std::size_t m_maxBreadth1;
     std::size_t m_bufferSize;
     HapMap::PrimitiveType *m_parent0;
     HapMap::PrimitiveType *m_parent1;
@@ -56,7 +65,8 @@ protected:
     std::size_t m_branch1count;
     std::size_t m_single0count;
     std::size_t m_single1count;
-    std::size_t m_singlePooledCount;
+    std::size_t m_singlePcount;
+    //std::size_t m_singlePooledCount;
     double m_freqA;
     double m_freqB;
     double m_freqP;
@@ -72,5 +82,7 @@ protected:
     HapMap* m_hmA;
     HapMap* m_hmB;
 };
+
+#include "ehhfinder-impl.hpp"
 
 #endif // LLEHHFINDER_H
