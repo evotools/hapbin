@@ -26,7 +26,7 @@
 class EHHFinder
 {
 public:
-    EHHFinder(std::size_t SnpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale);
+    explicit EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale, unsigned long long maxExtend);
     template <bool Binom>
     EHH find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long long>* reachedEnd, std::atomic<unsigned long long>* outsideMaf, bool ehhsave = false);
     template <bool Binom>
@@ -47,6 +47,7 @@ protected:
     std::size_t m_maxBreadth0;
     std::size_t m_maxBreadth1;
     std::size_t m_bufferSize;
+    unsigned long long m_maxExtend;
     HapMap::PrimitiveType *m_parent0;
     HapMap::PrimitiveType *m_parent1;
     HapMap::PrimitiveType *m_branch0;
@@ -64,7 +65,6 @@ protected:
     std::size_t m_single0count;
     std::size_t m_single1count;
     std::size_t m_singlePcount;
-    //std::size_t m_singlePooledCount;
     double m_freqA;
     double m_freqB;
     double m_freqP;

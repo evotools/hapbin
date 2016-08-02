@@ -46,8 +46,9 @@ int main(int argc, char** argv)
     Argument<int> binfac('b', "bin", "Number of frequency bins for iHS normalization (default: 50)", false, false, 50);
     Argument<unsigned long long> scale('s', "scale", "Gap scale parameter in bp, used to scale gaps > scale parameter as in Voight, et al.", false, false, 20000);
     Argument<bool> binom('a', "binom", "Use binomial coefficients rather than frequency squared for EHH", true, false);
+    Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
     Argument<std::string> outfile('o', "out", "Output file", false, false, "out.txt");
-    ArgParse argparse({&help, &version, &hap, &map, &outfile, &cutoff, &minMAF, &scale, &binfac, &binom}, "Usage: ihsbin --map input.map --hap input.hap [--ascii] [--out outfile]");
+    ArgParse argparse({&help, &version, &hap, &map, &outfile, &cutoff, &minMAF, &scale, &binfac, &maxExtend, &binom}, "Usage: ihsbin --map input.map --hap input.hap [--ascii] [--out outfile]");
     if (!argparse.parseArguments(argc, argv)) 
     {
         ret = 1;
@@ -73,7 +74,7 @@ int main(int argc, char** argv)
     numSnps = HapMap::querySnpLength(hap.value().c_str());
     std::cout << "Chromosomes per SNP: " << numSnps << std::endl;
     
-    calcIhs(hap.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), binfac.value(), binom.value());
+    calcIhs(hap.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value(), binom.value());
 
 out:
 #if MPI_FOUND

@@ -19,8 +19,8 @@
 
 #include "ihsfinder.hpp"
 
-IHSFinder::IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, int bins)
-    : m_snpLength(snpLength), m_cutoff(cutoff), m_minMAF(minMAF), m_scale(scale), m_bins(bins), m_counter{}, m_reachedEnd{}, m_outsideMaf{}, m_nanResults{}
+IHSFinder::IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, unsigned long long maxExtend, int bins)
+    : m_snpLength(snpLength), m_cutoff(cutoff), m_minMAF(minMAF), m_scale(scale), m_maxExtend(maxExtend), m_bins(bins), m_counter{}, m_reachedEnd{}, m_outsideMaf{}, m_nanResults{}
 {}
 
 void IHSFinder::processEHH(const EHH& ehh, std::size_t line)

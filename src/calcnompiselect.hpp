@@ -25,7 +25,14 @@
 #include <omp.h>
 #endif
 
-void calcIhsNoMpi(const std::string& hap, const std::string& map, const std::string& outfile, double cutoff, double minMAF, double scale, int bins)
+void calcIhsNoMpi(const std::string& hap,
+                  const std::string& map,
+                  const std::string& outfile,
+                  double cutoff,
+                  double minMAF,
+                  double scale,
+                  unsigned long long maxExtend,
+                  int bins)
 {
     HapMap ctcmap;
     if (!ctcmap.loadHap(hap.c_str()))
@@ -38,7 +45,7 @@ void calcIhsNoMpi(const std::string& hap, const std::string& map, const std::str
 #endif
     ctcmap.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
-    IHSFinder *ihsfinder = new IHSFinder(ctcmap.snpLength(), cutoff, minMAF, scale, bins);
+    IHSFinder *ihsfinder = new IHSFinder(ctcmap.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
     ihsfinder->run(&ctcmap, 0ULL, ctcmap.numSnps());
     IHSFinder::LineMap res = ihsfinder->normalize();
     
@@ -69,7 +76,15 @@ void calcIhsNoMpi(const std::string& hap, const std::string& map, const std::str
     delete ihsfinder;
 }
 
-void calcXpehhNoMpi(const std::string& hapA, const std::string& hapB, const std::string& map, const std::string& outfile, double cutoff, double minMAF, double scale, int bins)
+void calcXpehhNoMpi(const std::string& hapA,
+                    const std::string& hapB,
+                    const std::string& map,
+                    const std::string& outfile,
+                    double cutoff,
+                    double minMAF,
+                    double scale,
+                    unsigned long long maxExtend,
+                    int bins)
 {
     HapMap hA, hB;
     if (!hA.loadHap(hapA.c_str()))
@@ -87,7 +102,7 @@ void calcXpehhNoMpi(const std::string& hapA, const std::string& hapB, const std:
 #endif
     hA.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
-    IHSFinder *ihsfinder = new IHSFinder(hA.snpLength(), cutoff, minMAF, scale, bins);
+    IHSFinder *ihsfinder = new IHSFinder(hA.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
     ihsfinder->runXpehh(&hA, &hB, 0ULL, hA.numSnps());
     
     auto tend = std::chrono::high_resolution_clock::now();

@@ -22,10 +22,11 @@
 #include <algorithm>
 #include <cassert>
 
-EHHFinder::EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale)
+EHHFinder::EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale, unsigned long long maxExtend)
     : m_maxBreadth0(maxBreadth)
     , m_maxBreadth1(maxBreadth)
     , m_bufferSize(snpDataSizeA*maxBreadth)
+    , m_maxExtend(maxExtend)
     , m_parent0(reinterpret_cast<HapMap::PrimitiveType*>(aligned_alloc(128, (snpDataSizeA+snpDataSizeB)*maxBreadth*sizeof(HapMap::PrimitiveType))))
     , m_parent1(NULL)
     , m_branch0(reinterpret_cast<HapMap::PrimitiveType*>(aligned_alloc(128, (snpDataSizeA+snpDataSizeB)*maxBreadth*sizeof(HapMap::PrimitiveType))))

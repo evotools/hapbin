@@ -18,6 +18,10 @@ For additional options, see `[executable] --help`.
 
 This code is licensed under the GPL v3. Copyright is retained by the original authors, Colin Maclean and the University of Edinburgh.
 
+## Citation ##
+
+Maclean CA, Chue Hong NP, Prendergast JG. hapbin: An Efficient Program for Performing Haplotype-Based Scans for Positive Selection in Large Genomic Datasets. Mol Biol Evol. 2015 Nov;32(11):3027-9. [doi: 10.1093/molbev/msv172](http://mbe.oxfordjournals.org/content/32/11/3027)
+
 ## Building from source code ##
 
 ### Dependencies ###
@@ -102,7 +106,7 @@ The map files (`--map`) should be in the same format as used by [Selscan](https:
 
 - ehhbin outputs five columns. The first three being the locus' ID and its genetic and physical positions. These are followed by two columns corresponding to the EHH for each of the alleles at this locus (allele coded as 0 then 1).
 - ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
-- xpehh also outputs a file containing two columns: the SNP locus id (as specified in the map file) and corresponding XP-EHH value.
+- xpehh outputs a file containing five columns: the SNP locus id (as specified in the map file), corresponding iHH values and finally the XP-EHH value.
 
 ### Examples ###
 

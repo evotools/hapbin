@@ -40,7 +40,7 @@ public:
     using FreqVecMap = std::map<double, std::vector<double>>;
     using StatsMap = std::map<double, Stats>;
     
-    IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, int bins);
+    IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, unsigned long long maxExtend, int bins);
     FreqVecMap unStdIHSByFreq() const { return m_unStandIHSByFreq; }
     IhsInfoMap unStdIHSByLine() const { return m_unStandIHSByLine; }
     XIhsInfoMap unStdXIHSByLine() const { return m_unStandXIHSByLine; }
@@ -67,6 +67,7 @@ protected:
     double m_cutoff;
     double m_minMAF;
     double m_scale;
+    unsigned long long m_maxExtend;
     int m_bins;
     
     std::mutex m_mutex;
