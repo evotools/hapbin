@@ -36,9 +36,7 @@ protected:
     template <bool Binom>
     inline void calcBranch(HapMap* hm, HapMap::PrimitiveType* parent, std::size_t parentcount, HapMap::PrimitiveType* branch, std::size_t& branchcount, std::size_t currLine, double freq, double& probs, std::size_t& singlecount, std::size_t maxBreadth, bool* overflow);
     template <bool Binom>
-    inline void calcBranchXPEHH(HapMap* hmA, HapMap* hmB, std::size_t currLine, std::size_t& single0, std::size_t& single1, bool* overflow);
-    template <bool Binom>
-    inline void calcBranchP(std::size_t currLine, std::size_t& singleA, std::size_t& singleB, std::size_t& singleP, bool* overflow);
+    inline void calcBranchXPEHH(std::size_t currLine, std::size_t& singleA, std::size_t& singleB, std::size_t& singleP, bool* overflow);
     void setInitial(std::size_t focus, std::size_t line);
     void setInitialXPEHH(std::size_t focus);
     template <bool Binom>

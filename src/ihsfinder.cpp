@@ -78,10 +78,8 @@ IHSFinder::LineMap IHSFinder::normalize()
         iHSStatsByFreq[it.first] = stats(it.second);
     }
     
-    std::cout << m_unStandIHSByLine.size() << std::endl;
     for (const auto& it : m_unStandIHSByLine)
     {
-        std::cout << it.first << " " << it.second.iHS << std::endl;
         double freq = m_freqsByLine[it.first];
         m_standIHSSingle[it.first] = (it.second.iHS - iHSStatsByFreq[freq].mean)/iHSStatsByFreq[freq].stddev;
     }
