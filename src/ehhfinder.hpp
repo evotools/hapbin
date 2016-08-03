@@ -22,6 +22,7 @@
 #include "ehh.hpp"
 #include "hapmap.hpp"
 #include <atomic>
+#include <cassert>
 
 class EHHFinder
 {

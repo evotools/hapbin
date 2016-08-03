@@ -34,7 +34,7 @@ string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1
     "${VERSION}")
 set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g -ggdb")
 if(CMAKE_COMPILER_IS_GNUCXX)
     if(USE_LTO)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto -fuse-linker-plugin -fuse-ld=gold")
@@ -78,7 +78,7 @@ endif(MPI_FOUND AND USE_MPI)
 
 configure_file("${PROJECT_SOURCE_DIR}/config.h.in" "${PROJECT_BINARY_DIR}/config.h")
 
-set(core_SRCS ehhfinder.cpp ihsfinder.cpp ehhfinder.cpp hapmap.cpp hapbin.cpp ehhfinder-impl.hpp)
+set(core_SRCS ehhfinder.cpp ihsfinder.cpp ehhfinder.cpp hapmap.cpp hapbin.cpp ehhfinder-impl.hpp ihsfinder-impl.hpp)
 add_library(hapbin SHARED ${core_SRCS})
 set_target_properties(hapbin PROPERTIES VERSION 0 SOVERSION 0.0.0)
 

@@ -33,7 +33,11 @@ void EHHFinder::calcBranch(HapMap* hm, HapMap::PrimitiveType* parent, std::size_
             count += popcount1(leaf[j]);
         }
         
-        if (count == 0)
+        if (Binom && count <= 1)
+        {
+            continue;
+        }
+        if (!Binom && count == 0)
         {
             continue;
         }
@@ -89,7 +93,11 @@ inline void EHHFinder::calcBranchXPEHH(std::size_t currLine, std::size_t& single
         }
         int count = countA+countB;
 
-        if (count == 0)
+        if (Binom && count <= 1)
+        {
+            continue;
+        }
+        else if (!Binom && count == 0)
         {
             continue;
         }
@@ -456,11 +464,8 @@ EHH EHHFinder::find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long
         m_single1count = 0ULL;
     }
     m_hdA = hapmap->rawData();
-    m_snpDataSizeA = hapmap->snpDataSize();
-    if (!m_parent1)
-        m_parent1 = reinterpret_cast<HapMap::PrimitiveType*>(aligned_alloc(128, m_snpDataSizeA*m_maxBreadth1*sizeof(HapMap::PrimitiveType)));
-    if (!m_branch1)
-        m_branch1 = reinterpret_cast<HapMap::PrimitiveType*>(aligned_alloc(128, m_snpDataSizeA*m_maxBreadth1*sizeof(HapMap::PrimitiveType)));
+    m_snpDataSizeA = m_snpDataSizeB = hapmap->snpDataSize();
+
 #if VEC==4
     m_maskA = ::bitsetMask4(hapmap->snpLength());
 #elif VEC==2
