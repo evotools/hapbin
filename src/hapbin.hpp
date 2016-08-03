@@ -187,6 +187,7 @@ struct Stats
     double stddev;
 };
 
+double binom_2(double n);
 double nearest(double target, double number);
 Stats stats(const std::vector<double>& list);
 std::vector<std::string> splitString(const std::string input, char delim);

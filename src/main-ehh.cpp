@@ -35,9 +35,10 @@ int main(int argc, char** argv)
     Argument<double> cutoff('c', "cutoff", "EHH cutoff value (default: 0.05)", false, false, 0.05);
     Argument<double> minMAF('b', "minmaf", "Minimum allele frequency (default: 0.05)", false, false, 0.05);
     Argument<unsigned long long> scale('s', "scale", "Gap scale parameter in bp, used to scale gaps > scale parameter as in Voight, et al.", false, false, 20000);
+    Argument<bool> binom('a', "binom", "Use binomial coefficients rather than frequency squared for EHH", true, false);
     Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
     Argument<const char*> locus('l', "locus", "Locus", false, false, 0);
-    ArgParse argparse({&help, &version, &hap, &map, &locus, &cutoff, &minMAF, &scale, &maxExtend}, "Usage: ehhbin --map input.map --hap input.hap --locus id");
+    ArgParse argparse({&help, &version, &hap, &map, &locus, &cutoff, &minMAF, &scale, &maxExtend, &binom}, "Usage: ehhbin --map input.map --hap input.hap --locus id");
     if (!argparse.parseArguments(argc, argv)) 
     {
         return 3;
@@ -73,8 +74,11 @@ int main(int argc, char** argv)
     }
     std::atomic<unsigned long long> reachedEnd{};
     std::atomic<unsigned long long> outsideMaf{};
-    EHHFinder finder(hmap.snpDataSize(), hmap.snpDataSize(), 1000, maxExtend.value(), cutoff.value(), minMAF.value(), (double) scale.value());
-    e = finder.find(&hmap, l, &reachedEnd, &outsideMaf, true);
+    EHHFinder finder(hmap.snpDataSize(), 0, 1000, cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value());
+    if (binom.value())
+        e = finder.find<true>(&hmap, l, &reachedEnd, &outsideMaf, true);
+    else
+        e = finder.find<false>(&hmap, l, &reachedEnd, &outsideMaf, true);
     e.printEHH(&hmap);
     std::cout << "iHS: " << log(e.iHH_0/e.iHH_1) << std::endl;
     std::cout << "MAF: " << (double)e.num/(double)hmap.snpLength() << std::endl;
