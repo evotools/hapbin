@@ -32,7 +32,8 @@ void calcIhsNoMpi(const std::string& hap,
                   double minMAF,
                   double scale,
                   unsigned long long maxExtend,
-                  int bins)
+                  int bins,
+                  bool binom)
 {
     HapMap ctcmap;
     if (!ctcmap.loadHap(hap.c_str()))
@@ -46,7 +47,10 @@ void calcIhsNoMpi(const std::string& hap,
     ctcmap.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
     IHSFinder *ihsfinder = new IHSFinder(ctcmap.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
-    ihsfinder->run(&ctcmap, 0ULL, ctcmap.numSnps());
+    if (binom)
+        ihsfinder->run<true>(&ctcmap, 0ULL, ctcmap.numSnps());
+    else
+        ihsfinder->run<false>(&ctcmap, 0ULL, ctcmap.numSnps());
     IHSFinder::LineMap res = ihsfinder->normalize();
     
     auto tend = std::chrono::high_resolution_clock::now();
@@ -84,7 +88,8 @@ void calcXpehhNoMpi(const std::string& hapA,
                     double minMAF,
                     double scale,
                     unsigned long long maxExtend,
-                    int bins)
+                    int bins,
+                    bool binom)
 {
     HapMap hA, hB;
     if (!hA.loadHap(hapA.c_str()))
@@ -103,7 +108,10 @@ void calcXpehhNoMpi(const std::string& hapA,
     hA.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
     IHSFinder *ihsfinder = new IHSFinder(hA.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
-    ihsfinder->runXpehh(&hA, &hB, 0ULL, hA.numSnps());
+    if (binom)
+        ihsfinder->runXpehh<true>(&hA, &hB, 0ULL, hA.numSnps());
+    else
+        ihsfinder->runXpehh<false>(&hA, &hB, 0ULL, hA.numSnps());
     
     auto tend = std::chrono::high_resolution_clock::now();
     auto diff = tend - start;
