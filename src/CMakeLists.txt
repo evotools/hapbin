@@ -78,7 +78,7 @@ endif(MPI_FOUND AND USE_MPI)
 
 configure_file("${PROJECT_SOURCE_DIR}/config.h.in" "${PROJECT_BINARY_DIR}/config.h")
 
-set(core_SRCS ehhfinder.cpp ihsfinder.cpp ehhfinder.cpp hapmap.cpp hapbin.cpp ehhfinder-impl.hpp ihsfinder-impl.hpp)
+set(core_SRCS ehhfinder.cpp ihsfinder.cpp ehhfinder.cpp hapmap.cpp hapbin.cpp ehhfinder-impl.hpp ihsfinder-impl.hpp calcmpiselect.hpp calcnompiselect.hpp)
 add_library(hapbin SHARED ${core_SRCS})
 set_target_properties(hapbin PROPERTIES VERSION 0 SOVERSION 0.0.0)
 
