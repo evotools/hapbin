@@ -105,7 +105,7 @@ The map files (`--map`) should be in the same format as used by [Selscan](https:
 ### Output file formats ###
 
 - ehhbin outputs five columns. The first three being the locus' ID and its genetic and physical positions. These are followed by two columns corresponding to the EHH for each of the alleles at this locus (allele coded as 0 then 1).
-- ihsbin outputs two files, the first containing unstandardised iHS for allele 0 and the second (with the .std extension) containing the corresponding standardised iHS (alleles grouped in to 2% frequency bins for standardisation by default). Each of these output files contains two columns: the SNP locus id (as specified in the map file) and corresponding iHS value.
+- ihsbin outputs a file with each allele's iHH value (iHH_0 and iHH_1) as well as the unstandardised and standardised iHS values (alleles grouped in to 2% frequency bins for standardisation by default). The first column is the SNP locus id (as specified in the map file).
 - xpehh outputs a file containing five columns: the SNP locus id (as specified in the map file), corresponding iHH values and finally the XP-EHH value.
 
 ### Examples ###
@@ -123,3 +123,9 @@ Example command for calculating XP-EHH with default values for minor allele freq
      ./xpehhbin --hapA 1000GP_Phase3.GBR.chr22.hap --hapB 1000GP_Phase3.YRI.chr22.hap --map chr22.map --out chr22_GBRvsYRI_XPEHH
 
 Each of the input files referred to in these examples can be found in the data directory.
+
+### Frequently asked questions ###
+
+  **1. Why do selscan and hapbin give me slightly different iHS values with the same input data?**
+  
+  By default selscan calculates homozygosity values using binomial coefficents. Hapbin uses the sum of the squared haplotype frequencies which can also be used by selscan using the --alt flag. When the --alt flag is used with selscan the two approaches should be comparable.
