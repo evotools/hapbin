@@ -1,6 +1,6 @@
 /*
  * MPIRPC: MPI based invocation of functions on other ranks
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017  Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -772,7 +772,7 @@ public:
      *
      * When registering objects that depend on remote objects, they must be initialized in order (so that their ids are propagated).
      */
-    void barrier();
+    void sync();
 
     /**
      * @brief Shut down all Managers on all processes.

@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,25 +20,7 @@
 #include "hapbin.hpp"
 #include <vector>
 #include <sstream>
-
-#if defined(__MINGW32__) && !defined(_ISOC11_SOURCE)
-void* aligned_alloc(size_t alignment, size_t size)
-{
-    return __mingw_aligned_malloc(size, alignment);
-}
-void aligned_free(void* ptr)
-{
-    __mingw_aligned_free(ptr);
-}
-#elif (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_ISOC11_SOURCE)
-void* aligned_alloc(size_t alignment, size_t size)
-{
-    void* ret;
-    if (posix_memalign(&ret, alignment, size) != 0)
-        throw std::bad_alloc();
-    return ret;
-}
-#endif
+#include <unistd.h>
 
 double binom_2(double n)
 {
@@ -57,23 +39,23 @@ Stats stats(const std::vector<double>& list)
     Stats s;
     if (list.size() == 0)
         return s;
-    
+
     double total = 0.0;
     for (double v : list)
     {
         total += v;
     }
-    
+
     s.mean = total/(double)list.size();
-    
+
     double sqtotal = 0.0;
     for (double v : list)
     {
         sqtotal += std::pow(v - s.mean, 2);
     }
-    
+
     s.stddev = std::sqrt(sqtotal/(double)list.size());
-    
+
     return s;
 }
 
@@ -86,3 +68,22 @@ std::vector<std::string> splitString(const std::string input, char delim)
         split.push_back(part);
     return split;
 }
+
+void filter(unsigned long long* in, unsigned long long* out, std::size_t inlen, std::size_t outlen, const PopKey& pk)
+{
+    assert(outlen <= inlen);
+    assert(out[0] == 0ULL);
+    std::size_t outpos = 0ULL;
+    constexpr std::size_t bits = sizeof(unsigned long long)*8;
+    for(size_t i = 0; i < inlen; ++i)
+    {
+        bool state = (in[i/bits] & (1ULL << (i % bits))) > 0;
+        if (pk[i])
+        {
+            if (state)
+                out[outpos/bits] |= (1ULL << (outpos % bits));
+            ++outpos;
+        }
+    }
+}
+

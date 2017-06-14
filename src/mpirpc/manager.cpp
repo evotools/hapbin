@@ -1,6 +1,6 @@
 /*
  * MPIRPC: MPI based invocation of functions on other ranks
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -176,17 +176,16 @@ void Manager::registerRemoteObject()
     registerRemoteObject(status.MPI_SOURCE, info.type, info.id);
 }
 
-void Manager::barrier() {
-#ifdef __GNUG__
-    __sync_synchronize();
-#endif
-    asm volatile("" ::: "memory");
-    MPI_Barrier(m_comm);
-#ifdef __GNUG__
-    __sync_synchronize();
-#endif
-    asm volatile("" ::: "memory");
-    checkMessages();
+void Manager::sync() {
+    while (queueSize() > 0) { checkMessages(); } //block until this rank's queue is processed
+    MPI_Request req;
+    int flag;
+    MPI_Ibarrier(m_comm, &req);
+    do
+    {
+        MPI_Test(&req, &flag, MPI_STATUS_IGNORE);
+        checkMessages();
+    } while (!flag); //wait until all other ranks queues have been processed
 }
 
 void Manager::registerRemoteObject(int rank, TypeId type, ObjectId id) {

@@ -23,46 +23,23 @@
 #include "hapmap.hpp"
 #include "ehh.hpp"
 #include "argparse.hpp"
-#include "ehhfinder.hpp"
-#include "popkey.hpp"
-#include <atomic>
+#include "ehhpairfinder.hpp"
 
 int main(int argc, char** argv)
 {
     Argument<bool> help('h', "help", "Show this help", true, false);
-    Argument<bool> version('v', "version", "Version information", true, false);
-    Argument<const char*> hap('d', "hap", "Hap file", false, false, "");
-    Argument<const char*> map('m', "map", "Map file", false, false, "");
+    Argument<const char*> hap('d', "hap", "Hap file", false, true, "");
+    Argument<const char*> map('m', "map", "Map file", false, true, "");
     Argument<double> cutoff('c', "cutoff", "EHH cutoff value (default: 0.05)", false, false, 0.05);
     Argument<double> minMAF('b', "minmaf", "Minimum allele frequency (default: 0.05)", false, false, 0.05);
     Argument<unsigned long long> scale('s', "scale", "Gap scale parameter in bp, used to scale gaps > scale parameter as in Voight, et al.", false, false, 20000);
-    Argument<bool> binom('a', "binom", "Use binomial coefficients rather than frequency squared for EHH", true, false);
-    Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
-    Argument<const char*> locus('l', "locus", "Locus", false, false, 0);
+    Argument<const char*> locus1('1', "locus1", "Locus 1", false, true, 0);
+    Argument<const char*> locus2('2', "locus2", "Locus 2", false, true, 0);
     Argument<bool> filternonpoly('f', "filter", "Filter out non-polymorphic loci", false, false);
     Argument<std::string> pops('p', "pop", "Filter by population", true, false,"");
     Argument<std::string> key('k', "key", "Population key", false, false, "");
-    ArgParse argparse({&help, &version, &hap, &map, &locus, &cutoff, &minMAF, &scale, &maxExtend, &filternonpoly, &pops, &key, &binom}, "Usage: ehhbin --map input.map --hap input.hap --locus id");
-    if (!argparse.parseArguments(argc, argv))
-    {
-        argparse.showHelp();
-        return 3;
-    }
-    if (help.value())
-    {
-        argparse.showHelp();
-        return 0;
-    }
-    else if (version.value())
-    {
-        argparse.showVersion();
-        return 0;
-    }
-    else if (!hap.wasFound() || !map.wasFound() || !locus.wasFound())
-    {
-        std::cout << "Please specify --hap, --map, and --locus." << std::endl;
-        return 4;
-    }
+    ArgParse argparse({&help, &hap, &map, &locus1, &locus2, &cutoff, &minMAF, &scale, &filternonpoly, &pops, &key}, "Usage: ehh2bin --map input.map --hap input.hap --locus1 id1 --locus2 id2");
+    argparse.parseArguments(argc, argv);
     HapMap hmap;
     PopKey *popkey = NULL;
     if ((pops.wasFound() && !key.wasFound()) || (!pops.wasFound() && key.wasFound()))
@@ -78,24 +55,24 @@ int main(int argc, char** argv)
         return 1;
     }
     hmap.loadMap(map.value());
-    EHH e;
-    std::size_t l = hmap.idToIndex(locus.value());
-    if (l == std::numeric_limits<std::size_t>::max())
+    EHHPair e;
+    std::size_t l1 = hmap.idToIndex(locus1.value());
+    std::size_t l2 = hmap.idToIndex(locus2.value());
+    if (l1 == std::numeric_limits<std::size_t>::max())
     {
-        std::cerr << "No locus with the id: " << locus.value() << std::endl;
-        delete popkey;
+        std::cerr << "no locus with the id: " << locus1.value() << std::endl;
+        return 2;
+    } else if (l2 == std::numeric_limits<std::size_t>::max())
+    {
+        std::cerr << "no locus with the id: " << locus2.value() << std::endl;
         return 2;
     }
-    std::atomic<unsigned long long> reachedEnd{};
-    std::atomic<unsigned long long> outsideMaf{};
-    EHHFinder finder(hmap.snpDataSize(), 0, 1000, cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value());
-    if (binom.value())
-        e = finder.find<true>(&hmap, l, &reachedEnd, &outsideMaf, true);
-    else
-        e = finder.find<false>(&hmap, l, &reachedEnd, &outsideMaf, true);
+    EhhPairFinder finder(&hmap, cutoff.value(), minMAF.value(), (double) scale.value(), 1000, true);
+    e = finder.calcEhhPair(l1, l2, false);
     e.printEHH(&hmap);
-    std::cout << "iHS: " << log(e.iHH_0/e.iHH_1) << std::endl;
-    std::cout << "MAF: " << (double)e.num/(double)hmap.snpLength() << std::endl;
+    std::cout << "iHH:    " << e.ihh[0b00] << " " << e.ihh[0b01] << " " << e.ihh[0b10] << " " << e.ihh[0b11] << std::endl;
+    std::cout << "iHHNot: " << e.ihhNot[0b00] << " " << e.ihhNot[0b01] << " " << e.ihhNot[0b10] << " " << e.ihhNot[0b11] << std::endl;
+    std::cout << "iHS: " << log(e.ihh[0b00]/e.ihhNot[0b00]) << " " << log(e.ihh[0b01]/e.ihhNot[0b01]) << " " << log(e.ihh[0b10]/e.ihhNot[0b10]) << " " << log(e.ihh[0b11]/e.ihhNot[0b11]) << std::endl;
+    std::cout << "AF: " << e.af[0b00] << " " << e.af[0b01] << " " << e.af[0b10] << " " << e.af[0b11] << std::endl;
     delete popkey;
-    return 0;
 }

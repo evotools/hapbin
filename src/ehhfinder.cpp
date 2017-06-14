@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 #include "ehhfinder.hpp"
 #include "hapmap.hpp"
 #include <algorithm>
-#include <cassert>
 
 EHHFinder::EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale, unsigned long long maxExtend)
     : m_maxBreadth0(maxBreadth)
@@ -49,7 +48,7 @@ EHHFinder::EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::si
  * calcBranch counts the state of the parent (previous) branch, not the counts of the new (current) level. Therefore, we must advance
  * the calculations by one iteration before starting.
  */
-void EHHFinder::setInitial(std::size_t focus, std::size_t line)
+void EHHFinder::setInitial(std::size_t focus, std::size_t index)
 {
     m_parent0count = 2ULL;
     m_parent1count = 2ULL;
@@ -58,12 +57,12 @@ void EHHFinder::setInitial(std::size_t focus, std::size_t line)
     m_single0count = 0ULL;
     m_single1count = 0ULL;
 
-    for (int j = 0; j < m_snpDataSizeA; ++j)
+    for (std::size_t j = 0; j < m_snpDataSizeA; ++j)
     {
-        m_parent0[               j] = ~m_hdA[focus*m_snpDataSizeA+j] &  m_hdA[line*m_snpDataSizeA+j];
-        m_parent0[m_snpDataSizeA+j] = (~m_hdA[focus*m_snpDataSizeA+j]) & (~m_hdA[line*m_snpDataSizeA+j]);
-        m_parent1[               j] =  m_hdA[focus*m_snpDataSizeA+j] &  m_hdA[line*m_snpDataSizeA+j];
-        m_parent1[m_snpDataSizeA+j] =  m_hdA[focus*m_snpDataSizeA+j] & ~m_hdA[line*m_snpDataSizeA+j];
+        m_parent0[               j] = ~m_hdA[focus*m_snpDataSizeA+j] &  m_hdA[index*m_snpDataSizeA+j];
+        m_parent0[m_snpDataSizeA+j] = (~m_hdA[focus*m_snpDataSizeA+j]) & (~m_hdA[index*m_snpDataSizeA+j]);
+        m_parent1[               j] =  m_hdA[focus*m_snpDataSizeA+j] &  m_hdA[index*m_snpDataSizeA+j];
+        m_parent1[m_snpDataSizeA+j] =  m_hdA[focus*m_snpDataSizeA+j] & ~m_hdA[index*m_snpDataSizeA+j];
     }
     m_parent0[  m_snpDataSizeA-1] &= m_maskA;
     m_parent0[2*m_snpDataSizeA-1] &= m_maskA;
@@ -72,11 +71,6 @@ void EHHFinder::setInitial(std::size_t focus, std::size_t line)
 
 void EHHFinder::setInitialXPEHH(std::size_t focus)
 {
-    m_parent0count = 2ULL;
-    m_parent1count = 2ULL;
-    m_branch0count = 0ULL;
-    m_branch1count = 0ULL;
-
     for (std::size_t i = 0; i < m_snpDataSizeA; ++i)
         m_parent0[i] = ~m_hdA[focus*m_snpDataSizeA+i];
     m_parent0[m_snpDataSizeA-1] &= m_maskA;
@@ -88,6 +82,7 @@ void EHHFinder::setInitialXPEHH(std::size_t focus)
     for (std::size_t i = 0; i < m_snpDataSizeB; ++i)
         m_parent0[i+2*m_snpDataSizeA+m_snpDataSizeB] = m_hdB[focus*m_snpDataSizeB+i];
 }
+
 
 EHHFinder::~EHHFinder()
 {

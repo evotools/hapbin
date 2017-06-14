@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,6 @@ void removeBackslashes(char* in)
         }
     }
     in[pos] = '\0';
-    
 }
 
 template<typename T>
@@ -81,6 +80,15 @@ int parseArg(char *arg, const char* optLong, bool *ok)
 {
     char *tmp;
     int ret = strtol(arg, &tmp, 0);
+    *ok = arithParseErrorCheck(optLong, tmp);
+    return ret;
+}
+
+template<>
+unsigned int parseArg(char* arg, const char* optLong, bool *ok)
+{
+    char *tmp;
+    unsigned int ret = strtoul(arg, &tmp, 0);
     *ok = arithParseErrorCheck(optLong, tmp);
     return ret;
 }
@@ -147,8 +155,14 @@ template<>
 double parseArg(char* arg, const char* optLong, bool *ok)
 {
     char *tmp;
-    double ret = strtod(arg, &tmp);
-    *ok = arithParseErrorCheck(optLong, tmp);
+    double ret;
+    try {
+        ret = std::stod(arg);
+        *ok=true;
+    } catch (const std::invalid_argument& ia) {
+        std::cout << "Invalid argument. Could not parse: " << arg << std::endl;
+	    *ok=false;
+    }
     return ret;
 }
 
@@ -196,8 +210,8 @@ template<typename T>
 class Argument : public ArgumentBase
 {
 public:
-    Argument(char opt, const char* optLong, const char* desc, bool multi, bool required, T defaultValue) 
-        : ArgumentBase(opt, optLong, desc, multi, required), m_vals({defaultValue}) {}
+    Argument(char opt, const char* optLong, const char* desc, bool multi, bool required, T defaultValue)
+        : ArgumentBase(opt, optLong, desc, multi, required), m_vals{}, m_val{defaultValue} {}
     virtual int parse(int argc, char** argv)
     {
         int arglength = strlen(argv[0]);
@@ -218,7 +232,7 @@ public:
         }
         return 0;
     }
-    T value() { return m_vals[0]; }
+    T value() { return m_val; }
     std::vector<T> values() const { return m_vals; }
     bool isFlag() const { return false; }
     bool toggleFlag() {}
@@ -235,13 +249,15 @@ protected:
                 if (!ok)
                     return INT_MAX;
                 m_vals.push_back(val);
+                m_val = val;
             }
             else
             {
                 T val = parseArg<T>(v, optLong(), &ok);
                 if (!ok)
                     return INT_MAX;
-                m_vals[0] = val;
+                m_vals.push_back(val);
+                m_val = val;
                 found();
             }
             return 2;
@@ -249,25 +265,26 @@ protected:
             T val = parseArg<T>(v, optLong(), &ok);
             if (!ok)
                 return INT_MAX;
-            m_vals[0] = val;
+            m_val = val;
             found();
             return 2;
         }
     }
     std::vector<T> m_vals;
+    T m_val;
 };
 
 template<>
 class Argument<bool> : public ArgumentBase
 {
 public:
-    Argument(char opt, const char* optLong, const char* desc, bool flag, bool defaultValue) 
-        : ArgumentBase(opt, optLong, desc, false, false), m_isFlag(flag), m_val(defaultValue) 
+    Argument(char opt, const char* optLong, const char* desc, bool flag, bool defaultValue)
+        : ArgumentBase(opt, optLong, desc, false, false), m_isFlag(flag), m_val(defaultValue)
         {
             //flags should default to false
             assert(!(flag && defaultValue));
         }
-    virtual int parse(int argc, char** argv) 
+    virtual int parse(int argc, char** argv)
     {
         int arglength = strlen(argv[0]);
         int optlength = strlen(optLong());
@@ -291,15 +308,15 @@ public:
         }
         else
         {
-            if (arglength == optlength + 4)
+            if (arglength == optlength + 5)
             {
-                if (strncmp("--no-", argv[0], 4) == 0 && strcmp(optLong(), &argv[0][4]) == 0)
+                if (strncmp("--no-", argv[0], 4) == 0 && strcmp(optLong(), &argv[0][5]) == 0)
                 {
                     m_val = false;
                     found();
                     return 1;
                 }
-            } 
+            }
             else if (arglength == optlength + 2)
             {
                 if (strncmp("--", argv[0], 2) == 0 && strcmp(optLong(), &argv[0][2]) == 0)
@@ -325,10 +342,10 @@ class BareArgument : public ArgumentBase
 {
 public:
     BareArgument(bool multi, bool required) : ArgumentBase('\0', NULL, "", multi, required) {}
-    
+
     virtual int parse(int argc, const char** argv)
     {
-        
+
     }
 protected:
     std::vector<const char*> m_vals;
@@ -340,8 +357,8 @@ public:
     ArgParse(const std::vector<ArgumentBase*>& args, const std::string& usageSummary = "")
         : m_current_argument(1), m_arguments(args), m_usageSummary(usageSummary)
     {}
-    
-    bool parseArguments(int argc, char** argv) 
+
+    bool parseArguments(int argc, char** argv)
     {
         for(int currArg = 1; currArg < argc;)
         {
@@ -404,7 +421,6 @@ protected:
 template<typename... Args>
 void parseArguments(Argument<Args>&... args)
 {
-    
 }
 
 #endif /* ARGPARSE_HPP */

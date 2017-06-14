@@ -1,6 +1,6 @@
 /*
- * MPIRPC: MPI based invocation of functions on other ranks
- * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
+ * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
+ * Copyright (C) 2016-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,23 @@
  *
  */
 
-#include "objectwrapper.hpp"
+#ifndef POPKEY_H
+#define POPKEY_H
 
-namespace mpirpc {
+#include <string>
+#include <vector>
+#include <cstdint>
 
-ObjectId ObjectWrapperBase::objectIdCounter = 0;
+class PopKey
+{
+public:
+    PopKey(const std::string& keyfilename, const std::vector<std::string>& pops);
+    PopKey(const char* mask);
+    bool operator[](std::size_t index) const;
+    std::size_t count() const { return m_count; }
+protected:
+    std::vector<bool> m_key;
+    std::size_t m_count;
+};
 
-}
+#endif // POPKEY_H

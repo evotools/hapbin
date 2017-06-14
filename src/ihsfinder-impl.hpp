@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 
 template <bool Binom>
-void IHSFinder::runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t end)
+void IHSFinder::runXpehh(const HapMap* mA, const HapMap* mB, std::size_t start, std::size_t end)
 {
     #pragma omp parallel shared(mA,mB,start,end)
     {
@@ -40,7 +40,7 @@ void IHSFinder::runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t 
 }
 
 template <bool Binom>
-void IHSFinder::run(HapMap* map, std::size_t start, std::size_t end)
+void IHSFinder::run(const HapMap* map, std::size_t start, std::size_t end)
 {
     #pragma omp parallel shared(map, start, end)
     {

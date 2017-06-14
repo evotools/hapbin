@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@
 #include "hapmap.hpp"
 #include "ihsfinder.hpp"
 #include "hapbin.hpp"
+#include <fstream>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-void calcIhsNoMpi(const std::string& hap,
-                  const std::string& map,
+void calcIhsNoMpi(const HapMap* hm,
                   const std::string& outfile,
                   double cutoff,
                   double minMAF,
@@ -35,43 +35,40 @@ void calcIhsNoMpi(const std::string& hap,
                   int bins,
                   bool binom)
 {
-    HapMap ctcmap;
-    if (!ctcmap.loadHap(hap.c_str()))
-    {
-        return;
-    }
-
 #ifdef _OPENMP
     std::cout << "Threads: " << omp_get_max_threads() << std::endl;
 #endif
-    ctcmap.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
-    IHSFinder *ihsfinder = new IHSFinder(ctcmap.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
+
+    IHSFinder *ihsfinder = new IHSFinder(hm->snpLength(), cutoff, minMAF, scale, maxExtend, bins);
     if (binom)
-        ihsfinder->run<true>(&ctcmap, 0ULL, ctcmap.numSnps());
+        ihsfinder->run<true>(hm, 0ULL, hm->numSnps());
     else
-        ihsfinder->run<false>(&ctcmap, 0ULL, ctcmap.numSnps());
-    IHSFinder::LineMap res = ihsfinder->normalize();
-    
+        ihsfinder->run<false>(hm, 0ULL, hm->numSnps());
+    ihsfinder->normalize();
+    IHSFinder::IhsInfoMap res = ihsfinder->std();
+
     auto tend = std::chrono::high_resolution_clock::now();
     auto diff = tend - start;
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-    
-    auto unStd = ihsfinder->unStdIHSByLine();
-    
-    /*std::ofstream out(outfile);
-    out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
-    for (const auto& it : unStd)
-    {
-        out << ctcmap.lineToId(it.first) << '\t' << it.second.iHH_0 << '\t' << it.second.iHH_1 << '\t' << it.second.iHS << std::endl;
-    }*/
-    std::ofstream out2(outfile);
-    out2 << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
-    
+
+    auto unStd = ihsfinder->unStdByIndex();
+
+    std::ofstream out(outfile);
+    out << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS\tSL_0\tSL_1\tnSL\tStd nSL" << std::endl;
+
     for (const auto& it : res)
     {
         auto s = unStd[it.first];
-        out2 << ctcmap.lineToId(it.first) << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
+        out << hm->indexToId(it.first) << '\t';
+        out << it.second.iHH_0 << '\t';
+        out << it.second.iHH_1 << '\t';
+        out << log(it.second.iHH_1/it.second.iHH_0) << "\t";
+        out << it.second.iHS << '\t';
+        out << it.second.sl_0 << '\t';
+        out << it.second.sl_1 << '\t';
+        out << log(it.second.sl_1/it.second.sl_1) << '\t';
+        out << it.second.nSL << std::endl;
     }
     std::cout << "# valid loci: " << res.size() << std::endl;
     std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
@@ -83,6 +80,10 @@ void calcIhsNoMpi(const std::string& hap,
 void calcXpehhNoMpi(const std::string& hapA,
                     const std::string& hapB,
                     const std::string& map,
+                    const std::string& keyA,
+                    const std::vector<std::string>& popsA,
+                    const std::string& keyB,
+                    const std::vector<std::string>& popsB,
                     const std::string& outfile,
                     double cutoff,
                     double minMAF,
@@ -91,13 +92,18 @@ void calcXpehhNoMpi(const std::string& hapA,
                     int bins,
                     bool binom)
 {
-    HapMap hA, hB;
-    if (!hA.loadHap(hapA.c_str()))
+    HapMap mA, mB;
+    PopKey *pkA = NULL, *pkB = NULL;
+    if (keyA.size() > 0 && popsA.size() > 0)
+        pkA = new PopKey(keyA, popsA);
+    if (keyB.size() > 0 && popsB.size() > 0)
+        pkB = new PopKey(keyB, popsB);
+    if (!mA.loadHap(hapA.c_str(), false, pkA))
     {
         std::cerr << "Error: " << hapA.c_str() << " not found." << std::endl;
         return;
     }
-    if (!hB.loadHap(hapB.c_str()))
+    if (!mB.loadHap(hapB.c_str(), false, pkB))
     {
         std::cerr << "Error: " << hapB.c_str() << " not found." << std::endl;
         return;
@@ -105,26 +111,27 @@ void calcXpehhNoMpi(const std::string& hapA,
 #ifdef _OPENMP
     std::cout << "Threads: " << omp_get_max_threads() << std::endl;
 #endif
-    hA.loadMap(map.c_str());
+    mA.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
-    IHSFinder *ihsfinder = new IHSFinder(hA.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
+    IHSFinder *ihsfinder = new IHSFinder(mA.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
     if (binom)
-        ihsfinder->runXpehh<true>(&hA, &hB, 0ULL, hA.numSnps());
+        ihsfinder->runXpehh<true>(&mA, &mB, 0ULL, mA.numSnps());
     else
-        ihsfinder->runXpehh<false>(&hA, &hB, 0ULL, hA.numSnps());
-    
+        ihsfinder->runXpehh<false>(&mA, &mB, 0ULL, mA.numSnps());
+
     auto tend = std::chrono::high_resolution_clock::now();
     auto diff = tend - start;
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-    
+
+
     std::ofstream out(outfile);
-    out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH" << std::endl;
-    for (const auto& it : ihsfinder->unStdXIHSByLine())
+    out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tsl_A1\tsl_B1\tsl_P1\tXPnSl" << std::endl;
+    for (const auto& it : ihsfinder->unStdXIHSByIndex())
     {
-        out << hA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << std::endl;
+        out << mA.indexToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << it.second.sl_A1 << '\t' << it.second.sl_B1 << '\t' << it.second.sl_P1 << '\t' << log(it.second.sl_A1/it.second.sl_B1) << std::endl;
     }
 
-    std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdXIHSByLine().size() << std::endl;
+    std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdByIndex().size() << std::endl;
 
     delete ihsfinder;
 }
