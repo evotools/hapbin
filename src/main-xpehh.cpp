@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 int main(int argc, char** argv)
 {
     int ret = 0;
-    std::size_t numSnps;
+    std::size_t numSnps = 0ULL;
 #if MPI_FOUND
     MPI_Init(&argc, &argv);
 #endif
@@ -50,8 +50,13 @@ int main(int argc, char** argv)
     Argument<bool> binom('a', "binom", "Use binomial coefficients rather than frequency squared for EHH", true, false);
     Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
     Argument<std::string> outfile('o', "out", "Output file", false, false, "out.txt");
-    ArgParse argparse({&help, &version, &hapA, &hapB, &map, &outfile, &cutoff, &minMAF, &scale, &binfac, &binom, &maxExtend}, "Usage: xpehhbin --map input.map --hapA inputA.hap --hapB inputB.hap");
-    if (!argparse.parseArguments(argc, argv)) 
+    Argument<std::string> popsA('p', "popA", "Filter by population (HapMap A)", true, false,"");
+    Argument<std::string> keyA('k', "keyA", "Population key (HapMap A)", false, false, "");
+    Argument<std::string> popsB('q', "popB", "Filter by population (HapMap B)", true, false,"");
+    Argument<std::string> keyB('l', "keyB", "Population key (HapMap B)", false, false, "");
+
+    ArgParse argparse({&help, &version, &hapA, &hapB, &map, &outfile, &cutoff, &minMAF, &binfac, &scale, &maxExtend, &popsA, &popsB, &keyA, &keyB, &binom}, "Usage: xpehhbin --map input.map --hapA inputA.hap --hapB inputB.hap");
+    if (!argparse.parseArguments(argc, argv))
     {
         ret = 1;
         goto out;
@@ -72,13 +77,13 @@ int main(int argc, char** argv)
         ret = 2;
         goto out;
     }
-    
+
     numSnps = HapMap::querySnpLength(hapA.value().c_str());
     std::cout << "Haplotypes in population A: " << numSnps << std::endl;
     numSnps = HapMap::querySnpLength(hapB.value().c_str());
     std::cout << "Haplotypes in population B: " << numSnps << std::endl;
-    
-    calcXpehh(hapA.value(), hapB.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value(), binom.value());
+
+    calcXpehh(hapA.value(), hapB.value(), map.value(), keyA.value(), popsA.values(), keyB.value(), popsB.values(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value(), binom.value());
 
 out:
 #if MPI_FOUND
@@ -86,6 +91,7 @@ out:
 
     MPI_Finalize();
 #endif
+
     return ret;
 }
 

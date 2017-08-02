@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,29 +22,29 @@
 #include "ehh.hpp"
 #include "hapmap.hpp"
 #include <atomic>
-#include <cassert>
 
 class EHHFinder
 {
 public:
     explicit EHHFinder(std::size_t snpDataSizeA, std::size_t snpDataSizeB, std::size_t maxBreadth, double cutoff, double minMAF, double scale, unsigned long long maxExtend);
     template <bool Binom>
-    EHH find(HapMap* hapmap, std::size_t focus, std::atomic<unsigned long long>* reachedEnd, std::atomic<unsigned long long>* outsideMaf, bool ehhsave = false);
+    EHH find(const HapMap* hapmap, std::size_t focus, std::atomic<unsigned long long>* reachedEnd, std::atomic<unsigned long long>* outsideMaf, bool ehhsave = false);
     template <bool Binom>
-    XPEHH findXPEHH(HapMap* hmA, HapMap *hmB, std::size_t focus, std::atomic<unsigned long long>* reachedEnd);
+    XPEHH findXPEHH(const HapMap* hmA, const HapMap *hmB, std::size_t focus, std::atomic<unsigned long long>* reachedEnd);
     ~EHHFinder();
+
 protected:
     template <bool Binom>
-    inline void calcBranch(HapMap* hm, HapMap::PrimitiveType* parent, std::size_t parentcount, HapMap::PrimitiveType* branch, std::size_t& branchcount, std::size_t currLine, double freq, double& probs, std::size_t& singlecount, std::size_t maxBreadth, bool* overflow);
+    inline void calcBranch(const HapMap* hm, HapMap::PrimitiveType* parent, std::size_t parentcount, HapMap::PrimitiveType* branch, std::size_t& branchcount, std::size_t currIndex, double freq, double& probs, std::size_t& singlecount, std::size_t maxBreadth, bool* overflow);
     template <bool Binom>
-    inline void calcBranchXPEHH(std::size_t currLine, std::size_t& singleA, std::size_t& singleB, std::size_t& singleP, bool* overflow);
-    void setInitial(std::size_t focus, std::size_t line);
+    inline void calcBranchXPEHH(std::size_t currIndex, std::size_t& singleA, std::size_t& singleB, std::size_t& singleP, bool* overflow);
+    void setInitial(std::size_t focus, std::size_t index);
     void setInitialXPEHH(std::size_t focus);
     template <bool Binom>
-    inline void calcBranches(HapMap* hapmap, std::size_t focus, std::size_t currLine, double freq0, double freq1, HapStats& stats);
+    inline void calcBranches(const HapMap* hapmap, std::size_t focus, std::size_t currIndex, double freq0, double freq1, HapStats& stats);
     template <bool Binom>
-    inline void calcBranchesXPEHH(std::size_t currLine);
-    
+    inline void calcBranchesXPEHH(std::size_t currIndex);
+
     std::size_t m_maxBreadth0;
     std::size_t m_maxBreadth1;
     std::size_t m_bufferSize;
@@ -76,10 +76,10 @@ protected:
     std::size_t m_snpDataSizeB;
     std::size_t m_snpDataSizeULL_A;
     std::size_t m_snpDataSizeULL_B;
-    HapMap::PrimitiveType *m_hdA;
-    HapMap::PrimitiveType *m_hdB;
-    HapMap* m_hmA;
-    HapMap* m_hmB;
+    const HapMap::PrimitiveType *m_hdA;
+    const HapMap::PrimitiveType *m_hdB;
+    const HapMap* m_hmA;
+    const HapMap* m_hmB;
 };
 
 #include "ehhfinder-impl.hpp"

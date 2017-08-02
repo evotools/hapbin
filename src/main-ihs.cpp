@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 int main(int argc, char** argv)
 {
     int ret = 0;
-    std::size_t numSnps;
+    std::size_t numSnps = 0;
 #if MPI_FOUND
     MPI_Init(&argc, &argv);
 #endif
@@ -48,8 +48,11 @@ int main(int argc, char** argv)
     Argument<bool> binom('a', "binom", "Use binomial coefficients rather than frequency squared for EHH", true, false);
     Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
     Argument<std::string> outfile('o', "out", "Output file", false, false, "out.txt");
-    ArgParse argparse({&help, &version, &hap, &map, &outfile, &cutoff, &minMAF, &scale, &binfac, &maxExtend, &binom}, "Usage: ihsbin --map input.map --hap input.hap [--ascii] [--out outfile]");
-    if (!argparse.parseArguments(argc, argv)) 
+    Argument<bool> filternonpoly('f', "filter", "Filter out non-polymorphic loci", false, false);
+    Argument<std::string> pops('p', "pop", "Filter by population", true, false,"");
+    Argument<std::string> key('k', "key", "Population key", false, false, "");
+    ArgParse argparse({&help, &version, &hap, &map, &outfile, &cutoff, &minMAF, &scale, &maxExtend, &binfac, &filternonpoly, &pops, &key, &binom}, "Usage: ihsbin --map input.map --hap input.hap [--ascii] [--out outfile]");
+    if (!argparse.parseArguments(argc, argv))
     {
         ret = 1;
         goto out;
@@ -70,11 +73,31 @@ int main(int argc, char** argv)
         ret = 2;
         goto out;
     }
-    
+
     numSnps = HapMap::querySnpLength(hap.value().c_str());
     std::cout << "Chromosomes per SNP: " << numSnps << std::endl;
-    
-    calcIhs(hap.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value(), binom.value());
+
+    {
+        HapMap hmap;
+        PopKey *popkey = NULL;
+        if ((pops.wasFound() && !key.wasFound()) || (!pops.wasFound() && key.wasFound()))
+        {
+            std::cerr << "--pop and --key must both be specified to filter by population." << std::endl;
+            ret = 3;
+            goto out;
+        }
+        if (pops.wasFound() && key.wasFound())
+            popkey = new PopKey(key.value(), pops.values());
+        if (!hmap.loadHap(hap.value().c_str(), filternonpoly.value(), popkey))
+        {
+            delete popkey;
+            ret = 4;
+            goto out;
+        }
+        hmap.loadMap(map.value().c_str());
+
+        calcIhs(&hmap, outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value(), binom.value());
+    }
 
 out:
 #if MPI_FOUND
@@ -82,6 +105,7 @@ out:
 
     MPI_Finalize();
 #endif
+
     return ret;
 }
 

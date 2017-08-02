@@ -1,6 +1,6 @@
 /*
  * MPIRPC: MPI based invocation of functions on other ranks
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,10 +36,10 @@ void ParameterStream::seek(std::size_t pos)
     m_pos = pos;
 }
 
-char* ParameterStream::data() 
+char* ParameterStream::data()
 {
     return m_data->data();
-}    
+}
 
 const char* ParameterStream::constData() const
 {

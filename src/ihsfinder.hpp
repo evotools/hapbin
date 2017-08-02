@@ -1,6 +1,6 @@
 /*
  * Hapbin: A fast binary implementation EHH, iHS, and XPEHH
- * Copyright (C) 2014  Colin MacLean <s0838159@sms.ed.ac.uk>
+ * Copyright (C) 2014-2017 Colin MacLean <cmaclean@illinois.edu>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,50 +34,61 @@
 class IHSFinder
 {
 public:
-    using LineMap = std::map<std::size_t, double>;
+    using IndexMap = std::map<std::size_t, double>;
     using IhsInfoMap = std::map<std::size_t, IhsScore>;
     using XIhsInfoMap = std::map<std::size_t, XPEHH>;
     using FreqVecMap = std::map<double, std::vector<double>>;
     using StatsMap = std::map<double, Stats>;
-    
     IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, unsigned long long maxExtend, int bins);
-    FreqVecMap unStdIHSByFreq() const { return m_unStandIHSByFreq; }
-    IhsInfoMap unStdIHSByLine() const { return m_unStandIHSByLine; }
-    XIhsInfoMap unStdXIHSByLine() const { return m_unStandXIHSByLine; }
-    LineMap    freqsByLine() const    { return m_freqsByLine; }
+
+    FreqVecMap unStdIHSByFreq() const { return m_unStdIHSByFreq; }
+    FreqVecMap unStdNSLByFreq() const { return m_unStdNSLByFreq; }
+    IhsInfoMap unStdByIndex() const { return m_unStdByIndex; }
+    XIhsInfoMap unStdXIHSByIndex() const { return m_unStdXIHSByIndex; }
+    IndexMap    freqsByIndex() const    { return m_freqsByIndex; }
+    IhsInfoMap    std() const { return m_std; }
+
     unsigned long long numCompleted() const { return m_counter; }
     unsigned long long numReachedEnd() const { return m_reachedEnd; }
     unsigned long long numOutsideMaf() const { return m_outsideMaf; }
     unsigned long long numNanResults() const { return m_nanResults; }
-    
+
     template <bool Binom>
-    void run(HapMap* map, std::size_t start, std::size_t end);
+    void run(const HapMap* map, std::size_t start, std::size_t end);
     template <bool Binom>
-    void runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t end);
-    LineMap normalize();
-    
-    void addData(const LineMap& freqsBySite, const IhsInfoMap& unStandIHSByLine, const FreqVecMap& unStandIHSByFreq, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
-    void addXData(const LineMap& freqsBySite, const XIhsInfoMap& unStandXIHSByLine, const FreqVecMap& unStandIHSByFreq, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
-    
+    void runXpehh(const HapMap* mA, const HapMap* mB, std::size_t start, std::size_t end);
+    void addData(const IHSFinder::IndexMap& freqsByIndex,
+                 const IHSFinder::IhsInfoMap& unStandIHSByIndex,
+                 const IHSFinder::FreqVecMap& unStdIHSByFreq,
+                 const IHSFinder::FreqVecMap& unStdNSLByFreq,
+                 long long unsigned int reachedEnd,
+                 long long unsigned int outsideMaf,
+                 long long unsigned int nanResults);
+    void addXData(const IndexMap& freqsBySite,
+                  const XIhsInfoMap& unStandXIHSByIndex,
+                  const FreqVecMap& unStandIHSByFreq,
+                  unsigned long long reachedEnd,
+                  unsigned long long outsideMaf,
+                  unsigned long long nanResults);
+    void normalize();
+
 protected:
-    void processEHH(const EHH& ehh, std::size_t line);
-    void processXPEHH(XPEHH& e, size_t line);
-    
+    void processEHH(const EHH& ehh, std::size_t index);
+    void processXPEHH(XPEHH& e, size_t index);
     std::size_t m_snpLength;
     double m_cutoff;
     double m_minMAF;
     double m_scale;
     unsigned long long m_maxExtend;
     int m_bins;
-    
     std::mutex m_mutex;
-    std::mutex m_freqmutex;
-    LineMap    m_freqsByLine;
-    IhsInfoMap m_unStandIHSByLine;
-    XIhsInfoMap m_unStandXIHSByLine;
-    FreqVecMap m_unStandIHSByFreq;
-    LineMap    m_standIHSSingle;
-    
+
+    IndexMap    m_freqsByIndex;
+    IhsInfoMap  m_unStdByIndex;
+    XIhsInfoMap m_unStdXIHSByIndex;
+    FreqVecMap  m_unStdIHSByFreq;
+    FreqVecMap  m_unStdNSLByFreq;
+    IhsInfoMap  m_std;
     std::atomic<unsigned long long> m_counter;
     std::atomic<unsigned long long> m_reachedEnd;
     std::atomic<unsigned long long> m_outsideMaf;
