@@ -98,7 +98,7 @@ If you are using hapbin on the [ARCHER UK National HPC Service](http://www.arche
 
 ### Input file formats ###
 
-The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using `hapbinconv`. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference). If your data is in VCF format it can be converted to IMPUTE format using [vcftools](https://vcftools.github.io).
+The hap files (`--hap`), containing phased haplotypes, should be in IMPUTE [hap format](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#-h). These can be optionally converted to smaller binary files for use with the hapbin suite of tools using `hapbinconv`. IMPUTE provides phased haplotypes in this format for several publically available human cohorts [here](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#reference). If your data is in VCF format it can be converted to IMPUTE format using [vcftools](https://vcftools.github.io). See the FAQ below for more details.
 
 The map files (`--map`) should be in the same format as used by [Selscan](https://github.com/szpiech/selscan) with one row per variant and four space-separated columns specifiying chromosome, locus ID, genetic position and physical position.
 
@@ -129,3 +129,11 @@ Each of the input files referred to in these examples can be found in the data d
   **1. Why do selscan and hapbin give me slightly different iHS values with the same input data?**
   
   By default selscan calculates homozygosity values using binomial coefficents. Hapbin uses the sum of the squared haplotype frequencies which can also be used by selscan using the --alt flag. When the --alt flag is used with selscan the two approaches should be comparable.
+  
+  **2. Can hapbin take VCF files as input?**
+  
+  Not directly, but it is possible to use [vcftools](https://vcftools.github.io) to convert VCF files to IMPUTE format for use with hapbin. For example using the following vcftools command:
+  
+```shell
+  vcftools --gzvcf genotypes.vcf.gz --IMPUTE
+```
