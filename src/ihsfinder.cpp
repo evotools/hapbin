@@ -44,53 +44,72 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
     }
 
     freqs = ((int) (m_bins*ehh.num/(double)m_snpLength))/(double)m_bins;
-    
+
     if (ehh.iHH_1 > 0)
     {
         m_freqmutex.lock();
-        
+
         m_unStandIHSByFreq[freqs].push_back(iHS);
         m_freqmutex.unlock();
     }
-    
+
     m_mutex.lock();
     m_freqsByLine[line] = freqs;
     m_unStandIHSByLine[line] = IhsScore(iHS, ehh.iHH_0, ehh.iHH_1);
     m_mutex.unlock();
 }
 
-void IHSFinder::processXPEHH(XPEHH& e, size_t line)
+void IHSFinder::processXPEHH(XPEHH&& e, size_t line)
 {
     if (e.iHH_A1 == 0.0 || e.iHH_B1 == 0.0)
         return;
     e.xpehh = log(e.iHH_A1/e.iHH_B1);
     m_mutex.lock();
-    m_unStandXIHSByLine[line] = std::move(e);
+    double freqs = ((int) (m_bins*(e.numA+e.numB)/(double)m_snpLength))/(double)m_bins;
+    m_unStandXPEHHByFreq[freqs].push_back(e.xpehh);
+    m_unStandXPEHHByLine[line] = std::move(e);
+    m_freqsByLine[line] = freqs;
     m_mutex.unlock();
 }
 
 IHSFinder::LineMap IHSFinder::normalize()
 {
     StatsMap iHSStatsByFreq;
-    
+
     for(const auto& it : m_unStandIHSByFreq)
     {
         iHSStatsByFreq[it.first] = stats(it.second);
     }
-    
+
     for (const auto& it : m_unStandIHSByLine)
     {
         double freq = m_freqsByLine[it.first];
         m_standIHSSingle[it.first] = (it.second.iHS - iHSStatsByFreq[freq].mean)/iHSStatsByFreq[freq].stddev;
     }
-    
+
     return m_standIHSSingle;
 }
 
-void IHSFinder::addData(const IHSFinder::LineMap& freqsBySite, 
-                        const IHSFinder::IhsInfoMap& unStandIHSByLine, 
-                        const IHSFinder::FreqVecMap& unStandIHSByFreq, 
-                        unsigned long long reachedEnd, 
+IHSFinder::LineMap IHSFinder::normalizeXPEHH()
+{
+    StatsMap xpehhStatsByFreq;
+    LineMap ret;
+
+    for(const auto& it : m_unStandXPEHHByFreq)
+        xpehhStatsByFreq[it.first] = stats(it.second);
+
+    for(const auto& it : m_unStandXPEHHByLine) {
+        double freq = m_freqsByLine[it.first];
+        ret[it.first] = (it.second.xpehh - xpehhStatsByFreq[freq].mean)/xpehhStatsByFreq[freq].stddev;
+    }
+
+    return ret;
+}
+
+void IHSFinder::addData(const IHSFinder::LineMap& freqsBySite,
+                        const IHSFinder::IhsInfoMap& unStandIHSByLine,
+                        const IHSFinder::FreqVecMap& unStandIHSByFreq,
+                        unsigned long long reachedEnd,
                         unsigned long long outsideMaf,
                         unsigned long long nanResults)
 {
@@ -110,10 +129,10 @@ void IHSFinder::addData(const IHSFinder::LineMap& freqsBySite,
     m_freqmutex.unlock();
 }
 
-void IHSFinder::addXData(const IHSFinder::LineMap& freqsBySite, 
-                        const IHSFinder::XIhsInfoMap& unStandIHSByLine, 
-                        const IHSFinder::FreqVecMap& unStandIHSByFreq, 
-                        unsigned long long reachedEnd, 
+void IHSFinder::addXData(const IHSFinder::LineMap& freqsBySite,
+                        const IHSFinder::XpehhInfoMap& unStandIHSByLine,
+                        const IHSFinder::FreqVecMap& unStandIHSByFreq,
+                        unsigned long long reachedEnd,
                         unsigned long long outsideMaf,
                         unsigned long long nanResults)
 {
@@ -122,7 +141,7 @@ void IHSFinder::addXData(const IHSFinder::LineMap& freqsBySite,
     m_nanResults += nanResults;
     m_mutex.lock();
     m_freqsByLine.insert(freqsBySite.begin(), freqsBySite.end());
-    m_unStandXIHSByLine.insert(unStandIHSByLine.begin(), unStandIHSByLine.end());
+    m_unStandXPEHHByLine.insert(unStandIHSByLine.begin(), unStandIHSByLine.end());
     m_mutex.unlock();
     m_freqmutex.lock();
     for (auto pair : unStandIHSByFreq)

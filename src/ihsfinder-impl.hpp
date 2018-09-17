@@ -27,7 +27,7 @@ void IHSFinder::runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t 
         for(size_t i = start; i < end; ++i)
         {
             XPEHH xpehh = finder.findXPEHH<Binom>(mA, mB, i, &m_reachedEnd);
-            processXPEHH(xpehh, i);
+            processXPEHH(std::move(xpehh), i);
             ++m_counter;
             unsigned long long tmp = m_counter;
             if (tmp % 1000 == 0)

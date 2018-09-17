@@ -52,13 +52,13 @@ void calcIhsNoMpi(const std::string& hap,
     else
         ihsfinder->run<false>(&ctcmap, 0ULL, ctcmap.numSnps());
     IHSFinder::LineMap res = ihsfinder->normalize();
-    
+
     auto tend = std::chrono::high_resolution_clock::now();
     auto diff = tend - start;
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-    
+
     auto unStd = ihsfinder->unStdIHSByLine();
-    
+
     /*std::ofstream out(outfile);
     out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
     for (const auto& it : unStd)
@@ -67,7 +67,7 @@ void calcIhsNoMpi(const std::string& hap,
     }*/
     std::ofstream out2(outfile);
     out2 << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
-    
+
     for (const auto& it : res)
     {
         auto s = unStd[it.first];
@@ -112,19 +112,21 @@ void calcXpehhNoMpi(const std::string& hapA,
         ihsfinder->runXpehh<true>(&hA, &hB, 0ULL, hA.numSnps());
     else
         ihsfinder->runXpehh<false>(&hA, &hB, 0ULL, hA.numSnps());
-    
+
+    IHSFinder::LineMap standardized = ihsfinder->normalizeXPEHH();
+
     auto tend = std::chrono::high_resolution_clock::now();
     auto diff = tend - start;
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-    
+
     std::ofstream out(outfile);
-    out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH" << std::endl;
-    for (const auto& it : ihsfinder->unStdXIHSByLine())
+    out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tstd XPEHH" << std::endl;
+    for (const auto& it : ihsfinder->unStdXPEHHByLine())
     {
-        out << hA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << std::endl;
+        out << hA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << standardized[it.first] << std::endl;
     }
 
-    std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdXIHSByLine().size() << std::endl;
+    std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdXPEHHByLine().size() << std::endl;
 
     delete ihsfinder;
 }
