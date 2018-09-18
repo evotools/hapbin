@@ -36,48 +36,50 @@ class IHSFinder
 public:
     using LineMap = std::map<std::size_t, double>;
     using IhsInfoMap = std::map<std::size_t, IhsScore>;
-    using XIhsInfoMap = std::map<std::size_t, XPEHH>;
+    using XpehhInfoMap = std::map<std::size_t, XPEHH>;
     using FreqVecMap = std::map<double, std::vector<double>>;
     using StatsMap = std::map<double, Stats>;
-    
+
     IHSFinder(std::size_t snpLength, double cutoff, double minMAF, double scale, unsigned long long maxExtend, int bins);
     FreqVecMap unStdIHSByFreq() const { return m_unStandIHSByFreq; }
     IhsInfoMap unStdIHSByLine() const { return m_unStandIHSByLine; }
-    XIhsInfoMap unStdXIHSByLine() const { return m_unStandXIHSByLine; }
+    XpehhInfoMap unStdXPEHHByLine() const { return m_unStandXPEHHByLine; }
     LineMap    freqsByLine() const    { return m_freqsByLine; }
     unsigned long long numCompleted() const { return m_counter; }
     unsigned long long numReachedEnd() const { return m_reachedEnd; }
     unsigned long long numOutsideMaf() const { return m_outsideMaf; }
     unsigned long long numNanResults() const { return m_nanResults; }
-    
+
     template <bool Binom>
     void run(HapMap* map, std::size_t start, std::size_t end);
     template <bool Binom>
     void runXpehh(HapMap* mA, HapMap* mB, std::size_t start, std::size_t end);
     LineMap normalize();
-    
+    LineMap normalizeXPEHH();
+
     void addData(const LineMap& freqsBySite, const IhsInfoMap& unStandIHSByLine, const FreqVecMap& unStandIHSByFreq, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
-    void addXData(const LineMap& freqsBySite, const XIhsInfoMap& unStandXIHSByLine, const FreqVecMap& unStandIHSByFreq, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
-    
+    void addXData(const LineMap& freqsBySite, const XpehhInfoMap& unStandXIHSByLine, const FreqVecMap& unStandIHSByFreq, unsigned long long reachedEnd, unsigned long long outsideMaf, unsigned long long nanResults);
+
 protected:
     void processEHH(const EHH& ehh, std::size_t line);
-    void processXPEHH(XPEHH& e, size_t line);
-    
+    void processXPEHH(XPEHH&& e, size_t line);
+
     std::size_t m_snpLength;
     double m_cutoff;
     double m_minMAF;
     double m_scale;
     unsigned long long m_maxExtend;
     int m_bins;
-    
+
     std::mutex m_mutex;
     std::mutex m_freqmutex;
     LineMap    m_freqsByLine;
     IhsInfoMap m_unStandIHSByLine;
-    XIhsInfoMap m_unStandXIHSByLine;
+    XpehhInfoMap m_unStandXPEHHByLine;
     FreqVecMap m_unStandIHSByFreq;
+    FreqVecMap m_unStandXPEHHByFreq;
     LineMap    m_standIHSSingle;
-    
+
     std::atomic<unsigned long long> m_counter;
     std::atomic<unsigned long long> m_reachedEnd;
     std::atomic<unsigned long long> m_outsideMaf;

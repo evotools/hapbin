@@ -58,8 +58,8 @@ ParameterStream& operator>>(ParameterStream& in, XPEHH& info)
 void calcIhsMpi(const std::string& hapfile,
                 const std::string& mapfile,
 		const std::string& outfile,
-		double cutoff, 
-		double minMAF, 
+		double cutoff,
+		double minMAF,
 		double scale,
 		unsigned long long maxExtend,
 		int binFactor,
@@ -111,9 +111,9 @@ void calcIhsMpi(const std::string& hapfile,
         manager->invokeFunction(0, done);
     });
     manager->barrier();
-    
+
     auto start = std::chrono::high_resolution_clock::now();
-    
+
     if (manager->rank() == 0)
     {
         std::size_t numSnps = hap.numSnps();
@@ -142,23 +142,23 @@ void calcIhsMpi(const std::string& hapfile,
             ihsfinder->run<false>(&hap, 0UL, end);
         --procsToGo;
     }
-    
+
     while(manager->checkMessages())
     {
         if (procsToGo == 0)
             manager->shutdown();
     }
-    
+
     if (manager->rank() == 0)
     {
         auto end = std::chrono::high_resolution_clock::now();
         auto diff = end - start;
         std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-    
+
         IHSFinder::LineMap res = ihsfinder->normalize();
-    
+
         auto unStd = ihsfinder->unStdIHSByLine();
-        
+
         /*std::ofstream out(outfile);
         out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
         for (const auto& it : unStd)
@@ -167,7 +167,7 @@ void calcIhsMpi(const std::string& hapfile,
         }*/
         std::ofstream out2(outfile);
         out2 << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
-        
+
         for (const auto& it : res)
         {
             auto s = unStd[it.first];
@@ -178,7 +178,7 @@ void calcIhsMpi(const std::string& hapfile,
         std::cout << "# loci with NaN result: " << ihsfinder->numNanResults() << std::endl;
         std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;
     }
-    
+
     delete ihsfinder;
     delete manager;
 }
@@ -209,7 +209,7 @@ void calcXpehhMpi(const std::string& hapA,
     std::cout << "Population A haplotype count: " << mA.snpLength() << std::endl;
     std::cout << "Population B haplotype count: " << mB.snpLength() << std::endl;
     mA.loadMap(mapfile.c_str());
-    IHSFinder *ihsfinder = new IHSFinder(mA.snpLength(), cutoff, minMAF, scale, maxExtend, binFactor);
+    IHSFinder *ihsfinder = new IHSFinder(mA.snpLength() + mB.snpLength(), cutoff, minMAF, scale, maxExtend, binFactor);
     mpirpc::Manager *manager = new mpirpc::Manager();
     int procsToGo = manager->numProcs();
     std::cout << "Processes: " << procsToGo << std::endl;
@@ -242,16 +242,16 @@ void calcXpehhMpi(const std::string& hapA,
         else
             ihsfinder->runXpehh<false>(&mA, &mB, start, end);
         IHSFinder::LineMap fbl = ihsfinder->freqsByLine();
-        manager->invokeFunction(mainihsfinder, &IHSFinder::addXData, false, fbl, ihsfinder->unStdXIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
+        manager->invokeFunction(mainihsfinder, &IHSFinder::addXData, false, fbl, ihsfinder->unStdXPEHHByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
         manager->invokeFunction(0, done);
     });
     manager->barrier();
-    
+
     auto start = std::chrono::high_resolution_clock::now();
-    
+
     if (manager->rank() == 0)
     {
-        
+
         std::size_t numSnps = mA.numSnps();
         std::size_t snpsPerRank = numSnps/manager->numProcs();
         std::size_t pos = 0ULL;
@@ -278,26 +278,28 @@ void calcXpehhMpi(const std::string& hapA,
             ihsfinder->runXpehh<false>(&mA, &mB, 0ULL, end);
         --procsToGo;
     }
-    
+
     while(manager->checkMessages())
     {
         if (procsToGo == 0)
             manager->shutdown();
     }
-    
+
     if (manager->rank() == 0)
     {
+        IHSFinder::LineMap standardized = ihsfinder->normalizeXPEHH();
+
         auto tend = std::chrono::high_resolution_clock::now();
         auto diff = tend - start;
         std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-        
+
         std::ofstream out(outfile);
-        out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH" << std::endl;
-        for (const auto& it : ihsfinder->unStdXIHSByLine())
+        out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tstd XPEHH" << std::endl;
+        for (const auto& it : ihsfinder->unStdXPEHHByLine())
         {
-            out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << std::endl;
+            out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << standardized[it.first] << std::endl;
         }
-        std::cout << "# valid loci: " << ihsfinder->unStdXIHSByLine().size() << std::endl;
+        std::cout << "# valid loci: " << ihsfinder->unStdXPEHHByLine().size() << std::endl;
     }
     delete ihsfinder;
     delete manager;

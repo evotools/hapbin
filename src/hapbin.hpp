@@ -35,6 +35,12 @@ typedef unsigned long long v4ul __attribute__((vector_size(32)));
 typedef unsigned long long v2ul __attribute__((vector_size(16)));
 #endif
 
+#if __cpp_if_constexpr >= 201606
+#define constexpr_if constexpr if
+#else
+#define constexpr_if if
+#endif
+
 #ifdef VECLEN
 #define VEC VECLEN
 #else
@@ -49,12 +55,12 @@ typedef unsigned long long v2ul __attribute__((vector_size(16)));
 
 #if VEC==4
 #define EQUAL(v1, v2) (v1[0] == v2[0] && v1[1] == v2[1] && v1[2] == v2[2] && v1[3] == v2[3])
-#define ZERO ((v4ul){0ULL, 0ULL, 0ULL, 0ULL}) 
+#define ZERO ((v4ul){0ULL, 0ULL, 0ULL, 0ULL})
 #define BITSET_T_MAX ((v4ul){__UINT64_MAX__,__UINT64_MAX__,__UINT64_MAX__,__UINT64_MAX__})
 #define POPCOUNT popcount4
 #elif VEC==2
 #define EQUAL(v1, v2) (v1[0] == v2[0] && v1[1] == v2[1])
-#define ZERO ((v2ul){0ULL, 0ULL}) 
+#define ZERO ((v2ul){0ULL, 0ULL})
 #define BITSET_T_MAX ((v2ul){__UINT64_MAX__,__UINT64_MAX__})
 #define POPCOUNT popcount2
 #else
@@ -114,7 +120,7 @@ inline v4ul bitsetMask4(int length)
     if (len < 64)
     {
         ret[0] = bitsetMask<unsigned long long>(len);
-    } 
+    }
     else if (len < 128)
     {
         ret[0] = __UINT64_MAX__;
@@ -125,7 +131,7 @@ inline v4ul bitsetMask4(int length)
         ret[0] = __UINT64_MAX__;
         ret[1] = __UINT64_MAX__;
         ret[2] = bitsetMask<unsigned long long>(len);
-    } 
+    }
     else
     {
         ret = (v4ul){__UINT64_MAX__,__UINT64_MAX__,__UINT64_MAX__,__UINT64_MAX__};
@@ -141,7 +147,7 @@ inline v2ul bitsetMask2(int length)
     if (len < 64)
     {
         ret[0] = bitsetMask<unsigned long long>(len);
-    } 
+    }
     else
     {
         ret[0] = __UINT64_MAX__;
@@ -154,7 +160,7 @@ template<typename T, typename std::enable_if<std::is_integral<T>::value && !std:
 void convert(const char* line, T* buffer, std::size_t maxLength = 0)
 {
     const std::size_t bits = sizeof(T)*8;
-    
+
     std::size_t position = 0;
     for (std::size_t i = 0; line[i] != '\0'; ++i) {
         if (maxLength > 0 && position > maxLength)
@@ -164,7 +170,7 @@ void convert(const char* line, T* buffer, std::size_t maxLength = 0)
                 position++;
                 break;
             case '1':
-                
+
                 buffer[position/bits] |= ((T) (1ULL << (position % bits)));
                 position++;
                 break;
@@ -176,11 +182,11 @@ void convert(const char* line, T* buffer, std::size_t maxLength = 0)
                 throw std::runtime_error("ERROR: Not a valid ASCII haplotype map.");
                 break;
         }
-    
+
     }
 }
 
-struct Stats 
+struct Stats
 {
     Stats() : mean(0.0), stddev(0.0) {}
     double mean;
