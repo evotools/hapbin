@@ -22,26 +22,9 @@
 #include "hapbin.hpp"
 #include "ehh.hpp"
 
+#if MPI_FOUND
 #include "mpirpc/manager.hpp"
 #include "mpirpc/parameterstream.hpp"
-
-#include <chrono>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-ParameterStream& operator<<(ParameterStream& out, const IhsScore& info)
-{
-    out << info.iHS << info.iHH_0 << info.iHH_1 << info.freq;
-    return out;
-}
-
-ParameterStream& operator>>(ParameterStream& in, IhsScore& info)
-{
-    in >> info.iHS >> info.iHH_0 >> info.iHH_1 >> info.freq;
-    return in;
-}
 
 ParameterStream& operator<<(ParameterStream& out, const XPEHH& info)
 {
@@ -54,146 +37,27 @@ ParameterStream& operator>>(ParameterStream& in, XPEHH& info)
     in >> info.index >> info.xpehh >> info.numA >> info.numB >> info.numNotA >> info.numNotB >>  info.iHH_A1 >> info.iHH_B1 >> info.iHH_P1;
     return in;
 }
-
-void calcIhsMpi(const std::string& hapfile,
-                const std::string& mapfile,
-		const std::string& outfile,
-		double cutoff,
-		double minMAF,
-		double scale,
-		unsigned long long maxExtend,
-		int binFactor,
-		bool binom)
-{
-    std::cout << "Calculating iHS using MPI." << std::endl;
-    HapMap hap;
-    if (!hap.loadHap(hapfile.c_str()))
-    {
-        return;
-    }
-    std::cout << "Loaded " << hap.numSnps() << " snps." << std::endl;
-    std::cout << "Haplotype count: " << hap.snpLength() << " " << maxExtend << std::endl;
-    hap.loadMap(mapfile.c_str());
-    IHSFinder *ihsfinder = new IHSFinder(hap.snpLength(), cutoff, minMAF, scale, maxExtend, binFactor);
-    mpirpc::Manager *manager = new mpirpc::Manager();
-    int procsToGo = manager->numProcs();
-    std::cout << "Processes: " << procsToGo << std::endl;
-#ifdef _OPENMP
-    std::cout << "Threads: " << omp_get_max_threads() << std::endl;
 #endif
-    mpirpc::FunctionHandle done = manager->registerLambda([&]() {
-        --procsToGo;
-    });
-    manager->registerType<IHSFinder>();
-    manager->registerFunction(&IHSFinder::addData);
-    if (manager->rank() == 0)
-    {
-        manager->registerObject(ihsfinder);
-    }
-    /**
-     * MPI_Issend() in Manager::registerObject does not necessarily notify other processes that a send is ready before the barrier.
-     * Therefore, we must loop until the sends and recieves are complete.
-     */
-    while (manager->getObjectsOfType<IHSFinder>().size() < 1 || manager->queueSize() > 0)
-    {
-        manager->checkMessages();
-    }
-    manager->barrier();
-    mpirpc::ObjectWrapperBase* mainihsfinder = *(manager->getObjectsOfType<IHSFinder>().cbegin());
-    mpirpc::FunctionHandle runEHH =  manager->registerLambda([&](std::size_t start, std::size_t end) {
-        std::cout << "Computing EHH for " << (end-start) << " lines on rank " << manager->rank() << std::endl;
-        if (binom)
-            ihsfinder->run<true>(&hap, start, end);
-        else
-            ihsfinder->run<false>(&hap, start, end);
-        IHSFinder::LineMap fbl = ihsfinder->freqsByLine();
-        manager->invokeFunction(mainihsfinder, &IHSFinder::addData, false, fbl, ihsfinder->unStdIHSByLine(), ihsfinder->unStdIHSByFreq(), ihsfinder->numReachedEnd(), ihsfinder->numOutsideMaf(), ihsfinder->numNanResults());
-        manager->invokeFunction(0, done);
-    });
-    manager->barrier();
 
-    auto start = std::chrono::high_resolution_clock::now();
+#include <chrono>
 
-    if (manager->rank() == 0)
-    {
-        std::size_t numSnps = hap.numSnps();
-        std::size_t snpsPerRank = numSnps/manager->numProcs();
-        std::size_t pos = 0ULL;
-        for (int i = 1; i < manager->numProcs(); ++i)
-        {
-            std::size_t start = snpsPerRank*i;
-            std::size_t end = snpsPerRank*(i+1);
-            if (i == manager->numProcs()-1)
-            {
-                end = numSnps;
-            }
-            manager->invokeFunction(i, runEHH, start, end);
-            manager->checkMessages();
-        }
-        while (manager->queueSize() > 0) {
-            manager->checkMessages();
-        }
-        std::size_t end = snpsPerRank;
-        if (manager->numProcs() == 1)
-            end = numSnps;
-        if (binom)
-            ihsfinder->run<true>(&hap, 0UL, end);
-        else
-            ihsfinder->run<false>(&hap, 0UL, end);
-        --procsToGo;
-    }
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-    while(manager->checkMessages())
-    {
-        if (procsToGo == 0)
-            manager->shutdown();
-    }
-
-    if (manager->rank() == 0)
-    {
-        auto end = std::chrono::high_resolution_clock::now();
-        auto diff = end - start;
-        std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-
-        IHSFinder::LineMap res = ihsfinder->normalize();
-
-        auto unStd = ihsfinder->unStdIHSByLine();
-
-        /*std::ofstream out(outfile);
-        out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
-        for (const auto& it : unStd)
-        {
-            out << hap.lineToId(it.first) << '\t' << it.second.iHH_0 << '\t' << it.second.iHH_1 << '\t' << it.second.iHS << std::endl;
-        }*/
-        std::ofstream out2(outfile);
-        out2 << "Location\tFreq\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
-
-        for (const auto& it : res)
-        {
-            auto s = unStd[it.first];
-            out2 << hap.lineToId(it.first) << '\t' << s.freq << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
-        }
-        std::cout << "# valid loci: " << res.size() << std::endl;
-        std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
-        std::cout << "# loci with NaN result: " << ihsfinder->numNanResults() << std::endl;
-        std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;
-    }
-
-    delete ihsfinder;
-    delete manager;
-}
-
-void calcXpehhMpi(const std::string& hapA,
-                  const std::string& hapB,
-		  const std::string& mapfile,
-		  const std::string& outfile,
-		  double cutoff,
-		  double minMAF,
-		  double scale,
-		  unsigned long long maxExtend,
-		  int binFactor,
-		  bool binom)
+void calcXpehhMpi(
+    const std::string& hapA,
+    const std::string& hapB,
+    const std::string& mapfile,
+    const std::string& outfile,
+    double cutoff,
+    double minMAF,
+    double scale,
+    unsigned long long maxExtend,
+    int binFactor,
+    bool binom)
 {
+#if MPI_FOUND
     std::cout << "Calculating XPEHH using MPI." << std::endl;
     HapMap mA, mB;
     if (!mA.loadHap(hapA.c_str()))
@@ -304,4 +168,7 @@ void calcXpehhMpi(const std::string& hapA,
     }
     delete ihsfinder;
     delete manager;
+#else
+    std::cout << "MPI support not enabled!" << std::endl;
+#endif
 }

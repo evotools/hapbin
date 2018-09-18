@@ -25,15 +25,16 @@
 #include <omp.h>
 #endif
 
-void calcIhsNoMpi(const std::string& hap,
-                  const std::string& map,
-                  const std::string& outfile,
-                  double cutoff,
-                  double minMAF,
-                  double scale,
-                  unsigned long long maxExtend,
-                  int bins,
-                  bool binom)
+void calcIhsNoMpi(
+    const std::string& hap,
+    const std::string& map,
+    const std::string& outfile,
+    double cutoff,
+    double minMAF,
+    double scale,
+    unsigned long long maxExtend,
+    int bins,
+    bool binom)
 {
     HapMap hm;
     if (!hm.loadHap(hap.c_str()))
@@ -71,57 +72,5 @@ void calcIhsNoMpi(const std::string& hap,
     std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
     std::cout << "# loci with NaN result: " << ihsfinder->numNanResults() << std::endl;
     std::cout << "# loci which reached the end of the chromosome: " << ihsfinder->numReachedEnd() << std::endl;
-    delete ihsfinder;
-}
-
-void calcXpehhNoMpi(const std::string& hapA,
-                    const std::string& hapB,
-                    const std::string& map,
-                    const std::string& outfile,
-                    double cutoff,
-                    double minMAF,
-                    double scale,
-                    unsigned long long maxExtend,
-                    int bins,
-                    bool binom)
-{
-    HapMap hA, hB;
-    if (!hA.loadHap(hapA.c_str()))
-    {
-        std::cerr << "Error: " << hapA.c_str() << " not found." << std::endl;
-        return;
-    }
-    if (!hB.loadHap(hapB.c_str()))
-    {
-        std::cerr << "Error: " << hapB.c_str() << " not found." << std::endl;
-        return;
-    }
-#ifdef _OPENMP
-    std::cout << "Threads: " << omp_get_max_threads() << std::endl;
-#endif
-    hA.loadMap(map.c_str());
-    auto start = std::chrono::high_resolution_clock::now();
-    IHSFinder *ihsfinder = new IHSFinder(hA.snpLength() + hB.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
-    if (binom)
-        ihsfinder->runXpehh<true>(&hA, &hB, 0ULL, hA.numSnps());
-    else
-        ihsfinder->runXpehh<false>(&hA, &hB, 0ULL, hA.numSnps());
-
-    IHSFinder::LineMap standardized = ihsfinder->normalizeXPEHH();
-
-    auto tend = std::chrono::high_resolution_clock::now();
-    auto diff = tend - start;
-    std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
-
-    std::ofstream out(outfile);
-    out << "Location\tFreq\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tstd XPEHH" << std::endl;
-    for (const auto& it : ihsfinder->unStdXPEHHByLine())
-    {
-        double freq = (double)(it.second.numA + it.second.numB)/((double) hA.snpLength() + hB.snpLength());
-        out << hA.lineToId(it.first) << '\t' << freq << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << standardized[it.first] << std::endl;
-    }
-
-    std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdXPEHHByLine().size() << std::endl;
-
     delete ihsfinder;
 }
