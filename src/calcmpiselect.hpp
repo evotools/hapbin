@@ -294,10 +294,11 @@ void calcXpehhMpi(const std::string& hapA,
         std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
 
         std::ofstream out(outfile);
-        out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tstd XPEHH" << std::endl;
+        out << "Location\tFreq\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tstd XPEHH" << std::endl;
         for (const auto& it : ihsfinder->unStdXPEHHByLine())
         {
-            out << mA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << standardized[it.first] << std::endl;
+            double freq = (double)(it.second.numA + it.second.numB)/((double) mA.snpLength() + mB.snpLength());
+            out << mA.lineToId(it.first) << '\t' << freq << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << standardized[it.first] << std::endl;
         }
         std::cout << "# valid loci: " << ihsfinder->unStdXPEHHByLine().size() << std::endl;
     }

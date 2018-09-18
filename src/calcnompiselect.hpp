@@ -59,12 +59,6 @@ void calcIhsNoMpi(const std::string& hap,
 
     auto unStd = ihsfinder->unStdIHSByLine();
 
-    /*std::ofstream out(outfile);
-    out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
-    for (const auto& it : unStd)
-    {
-        out << ctcmap.lineToId(it.first) << '\t' << it.second.iHH_0 << '\t' << it.second.iHH_1 << '\t' << it.second.iHS << std::endl;
-    }*/
     std::ofstream out2(outfile);
     out2 << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
 
@@ -107,7 +101,7 @@ void calcXpehhNoMpi(const std::string& hapA,
 #endif
     hA.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
-    IHSFinder *ihsfinder = new IHSFinder(hA.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
+    IHSFinder *ihsfinder = new IHSFinder(hA.snpLength() + hB.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
     if (binom)
         ihsfinder->runXpehh<true>(&hA, &hB, 0ULL, hA.numSnps());
     else
@@ -120,10 +114,11 @@ void calcXpehhNoMpi(const std::string& hapA,
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
 
     std::ofstream out(outfile);
-    out << "Location\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tstd XPEHH" << std::endl;
+    out << "Location\tFreq\tiHH_A1\tiHH_B1\tiHH_P1\tXPEHH\tstd XPEHH" << std::endl;
     for (const auto& it : ihsfinder->unStdXPEHHByLine())
     {
-        out << hA.lineToId(it.first) << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << standardized[it.first] << std::endl;
+        double freq = (double)(it.second.numA + it.second.numB)/((double) hA.snpLength() + hB.snpLength());
+        out << hA.lineToId(it.first) << '\t' << freq << '\t' << it.second.iHH_A1 << '\t' << it.second.iHH_B1 << '\t' << it.second.iHH_P1 << '\t' << it.second.xpehh << '\t' << standardized[it.first] << std::endl;
     }
 
     std::cout << "# valid loci: " << minMAF << ": " << ihsfinder->unStdXPEHHByLine().size() << std::endl;
