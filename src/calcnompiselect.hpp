@@ -35,8 +35,8 @@ void calcIhsNoMpi(const std::string& hap,
                   int bins,
                   bool binom)
 {
-    HapMap ctcmap;
-    if (!ctcmap.loadHap(hap.c_str()))
+    HapMap hm;
+    if (!hm.loadHap(hap.c_str()))
     {
         return;
     }
@@ -44,13 +44,13 @@ void calcIhsNoMpi(const std::string& hap,
 #ifdef _OPENMP
     std::cout << "Threads: " << omp_get_max_threads() << std::endl;
 #endif
-    ctcmap.loadMap(map.c_str());
+    hm.loadMap(map.c_str());
     auto start = std::chrono::high_resolution_clock::now();
-    IHSFinder *ihsfinder = new IHSFinder(ctcmap.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
+    IHSFinder *ihsfinder = new IHSFinder(hm.snpLength(), cutoff, minMAF, scale, maxExtend, bins);
     if (binom)
-        ihsfinder->run<true>(&ctcmap, 0ULL, ctcmap.numSnps());
+        ihsfinder->run<true>(&hm, 0ULL, hm.numSnps());
     else
-        ihsfinder->run<false>(&ctcmap, 0ULL, ctcmap.numSnps());
+        ihsfinder->run<false>(&hm, 0ULL, hm.numSnps());
     IHSFinder::LineMap res = ihsfinder->normalize();
 
     auto tend = std::chrono::high_resolution_clock::now();
@@ -60,12 +60,12 @@ void calcIhsNoMpi(const std::string& hap,
     auto unStd = ihsfinder->unStdIHSByLine();
 
     std::ofstream out2(outfile);
-    out2 << "Location\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
+    out2 << "Location\tFreq\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
 
     for (const auto& it : res)
     {
         auto s = unStd[it.first];
-        out2 << ctcmap.lineToId(it.first) << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
+        out2 << hm.lineToId(it.first) << '\t' << s.freq << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
     }
     std::cout << "# valid loci: " << res.size() << std::endl;
     std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
