@@ -48,17 +48,17 @@ struct EHH
         {}
     std::vector<HapStats> upstream;
     std::vector<HapStats> downstream;
-    
+
     unsigned long long index;
-    
+
     int num;
     int numNot;
-    
+
     double iHH_0;
     double iHH_1;
-    
+
     ~EHH() {}
-    
+
     void printEHH() const {
         for (auto it = upstream.crbegin(); it != upstream.crend(); ++it) {
             std::cout << it->probs << " " << it->probsNot << std::endl;
@@ -68,7 +68,7 @@ struct EHH
             std::cout << it->probs << " " << it->probsNot << std::endl;
         }
     }
-    
+
     void printEHH(HapMap* hm)
     {
         if (upstream.size() == 0 && downstream.size() == 0)
@@ -81,8 +81,8 @@ struct EHH
         {
             --i;
             std::cout << hm->lineToId(index-i-1) << " "
-                      << hm->geneticPosition(index-i-1) << " " 
-                      << hm->physicalPosition(index-i-1) << " " 
+                      << hm->geneticPosition(index-i-1) << " "
+                      << hm->physicalPosition(index-i-1) << " "
                       << upstream.at(i).probs << " "
                       << upstream.at(i).probsNot << std::endl;
         }
@@ -130,11 +130,12 @@ struct XPEHH
 
 struct IhsScore
 {
-    IhsScore() : iHS(0.0), iHH_0(0.0), iHH_1(0.0) {}
-    IhsScore(double s, double a, double d) : iHS(s), iHH_0(a), iHH_1(d) {}
+    IhsScore() : iHS(0.0), iHH_0(0.0), iHH_1(0.0), freq(0.0) {}
+    IhsScore(double s, double a, double d, double f) : iHS(s), iHH_0(a), iHH_1(d), freq(0.0) {}
     double iHS;
     double iHH_0;
     double iHH_1;
+    double freq;
 };
 
 #endif // EHH_HPP

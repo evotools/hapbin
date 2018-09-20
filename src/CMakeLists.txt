@@ -20,6 +20,8 @@ option(MARCH_NATIVE "Optimize with -march=native" ON)
 option(USE_MPI "Build with MPI, if available" ON)
 option(USE_LTO "Build with Link Time Optimizations" OFF)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(GetGitRevisionDescription)
@@ -78,9 +80,10 @@ endif(MPI_FOUND AND USE_MPI)
 
 configure_file("${PROJECT_SOURCE_DIR}/config.h.in" "${PROJECT_BINARY_DIR}/config.h")
 
-set(core_SRCS ehhfinder.cpp ihsfinder.cpp ehhfinder.cpp hapmap.cpp hapbin.cpp ehhfinder-impl.hpp ihsfinder-impl.hpp calcmpiselect.hpp calcnompiselect.hpp)
+set(core_SRCS ehhfinder.cpp ihsfinder.cpp ehhfinder.cpp hapmap.cpp hapbin.cpp ehhfinder-impl.hpp ihsfinder-impl.hpp ihs.cpp xpehh.cpp)
 add_library(hapbin SHARED ${core_SRCS})
 set_target_properties(hapbin PROPERTIES VERSION 0 SOVERSION 0.0.0)
+
 
 set(ihsbin_SRCS main-ihs.cpp)
 add_executable(ihsbin ${ihsbin_SRCS})
@@ -95,8 +98,12 @@ set(hapbinconv_SRCS main-conv.cpp)
 add_executable(hapbinconv ${hapbinconv_SRCS})
 
 if(MPI_FOUND AND USE_MPI)
-    target_link_libraries(ihsbin hapbin mpirpc ${MPI_CXX_LIBRARIES})
-    target_link_libraries(xpehhbin hapbin mpirpc ${MPI_CXX_LIBRARIES})
+    set(mpi_SRCS xpehh_mpi.cpp ihs_mpi.cpp)
+    add_library(hapbin_mpi SHARED ${mpi_SRCS})
+    set_target_properties(hapbin_mpi PROPERTIES VERSION 0 SOVERSION 0.0.0)
+    target_link_libraries(hapbin_mpi hapbin mpirpc ${MPI_CXX_LIBRARIES})
+    target_link_libraries(ihsbin hapbin_mpi ${MPI_CXX_LIBRARIES})
+    target_link_libraries(xpehhbin hapbin_mpi ${MPI_CXX_LIBRARIES})
 else(MPI_FOUND AND USE_MPI)
     target_link_libraries(ihsbin hapbin)
     target_link_libraries(xpehhbin hapbin)
@@ -123,5 +130,5 @@ set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "x86_64")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Colin MacLean <cmaclean@illinois.edu>")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "mpich (>= 3.0.0), libgcc1 (>= 1:4.7), libstdc++6 (>= 4.7)")
 set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
-set(CPACK_RPM_PACKAGE_REQUIRES "mpich >= 3.0.0, libgcc1 >= 4.7, libstdc++6 >= 4.7") 
+set(CPACK_RPM_PACKAGE_REQUIRES "mpich >= 3.0.0, libgcc1 >= 4.7, libstdc++6 >= 4.7")
 include(CPack)

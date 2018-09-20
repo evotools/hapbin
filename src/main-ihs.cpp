@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
     Argument<std::string> outfile('o', "out", "Output file", false, false, "out.txt");
     ArgParse argparse({&help, &version, &hap, &map, &outfile, &cutoff, &minMAF, &scale, &binfac, &maxExtend, &binom}, "Usage: ihsbin --map input.map --hap input.hap [--ascii] [--out outfile]");
-    if (!argparse.parseArguments(argc, argv)) 
+    if (!argparse.parseArguments(argc, argv))
     {
         ret = 1;
         goto out;
@@ -70,12 +70,11 @@ int main(int argc, char** argv)
         ret = 2;
         goto out;
     }
-    
+
     numSnps = HapMap::querySnpLength(hap.value().c_str());
     std::cout << "Chromosomes per SNP: " << numSnps << std::endl;
-    
-    calcIhs(hap.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value(), binom.value());
 
+    calcIhs(hap.value(), map.value(), outfile.value(), cutoff.value(), minMAF.value(), (double) scale.value(), maxExtend.value(), binfac.value(), binom.value());
 out:
 #if MPI_FOUND
     MPI_Barrier(MPI_COMM_WORLD);

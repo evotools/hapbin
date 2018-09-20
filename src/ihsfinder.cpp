@@ -55,7 +55,7 @@ void IHSFinder::processEHH(const EHH& ehh, std::size_t line)
 
     m_mutex.lock();
     m_freqsByLine[line] = freqs;
-    m_unStandIHSByLine[line] = IhsScore(iHS, ehh.iHH_0, ehh.iHH_1);
+    m_unStandIHSByLine[line] = IhsScore(iHS, ehh.iHH_0, ehh.iHH_1, ehh.num/(double) m_snpLength);
     m_mutex.unlock();
 }
 

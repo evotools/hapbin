@@ -18,13 +18,66 @@
  */
 
 #include "config.h"
+#include <string>
+
+void calcIhsNoMpi(
+    const std::string& hap,
+    const std::string& map,
+    const std::string& outfile,
+    double cutoff,
+    double minMAF,
+    double scale,
+    unsigned long long maxExtend,
+    int bins,
+    bool binom);
+
+void calcIhsMpi(
+    const std::string& hapfile,
+    const std::string& mapfile,
+    const std::string& outfile,
+    double cutoff,
+    double minMAF,
+    double scale,
+    unsigned long long maxExtend,
+    int binFactor,
+    bool binom);
+
+void calcXpehhNoMpi(
+    const std::string& hapA,
+    const std::string& hapB,
+    const std::string& map,
+    const std::string& outfile,
+    double cutoff,
+    double minMAF,
+    double scale,
+    unsigned long long maxExtend,
+    int bins,
+    bool binom);
+
+void calcXpehhMpi(
+    const std::string& hapA,
+    const std::string& hapB,
+    const std::string& mapfile,
+    const std::string& outfile,
+    double cutoff,
+    double minMAF,
+    double scale,
+    unsigned long long maxExtend,
+    int binFactor,
+    bool binom);
 
 #if MPI_FOUND
-#include "calcmpiselect.hpp"
+class ParameterStream;
+struct IhsScore;
+struct XPEHH;
+ParameterStream& operator<<(ParameterStream& out, const IhsScore& info);
+ParameterStream& operator>>(ParameterStream& in, IhsScore& info);
+ParameterStream& operator<<(ParameterStream& out, const XPEHH& info);
+ParameterStream& operator>>(ParameterStream& in, XPEHH& info);
+
 #define calcIhs calcIhsMpi
 #define calcXpehh calcXpehhMpi
 #else
-#include "calcnompiselect.hpp"
 #define calcIhs calcIhsNoMpi
 #define calcXpehh calcXpehhNoMpi
 #endif
