@@ -160,12 +160,12 @@ void calcIhsMpi(
             out << hap.lineToId(it.first) << '\t' << it.second.iHH_0 << '\t' << it.second.iHH_1 << '\t' << it.second.iHS << std::endl;
         }*/
         std::ofstream out2(outfile);
-        out2 << "Location\tFreq\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
+        out2 << "Index\tID\tFreq\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
 
         for (const auto& it : res)
         {
             auto s = unStd[it.first];
-            out2 << hap.lineToId(it.first) << '\t' << s.freq << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
+            out2 << it.first << '\t' << hap.lineToId(it.first) << '\t' << s.freq << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
         }
         std::cout << "# valid loci: " << res.size() << std::endl;
         std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
