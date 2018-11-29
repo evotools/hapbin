@@ -131,7 +131,7 @@ struct XPEHH
 struct IhsScore
 {
     IhsScore() : iHS(0.0), iHH_0(0.0), iHH_1(0.0), freq(0.0) {}
-    IhsScore(double s, double a, double d, double f) : iHS(s), iHH_0(a), iHH_1(d), freq(0.0) {}
+    IhsScore(double s, double a, double d, double f) : iHS(s), iHH_0(a), iHH_1(d), freq(f) {}
     double iHS;
     double iHH_0;
     double iHH_1;
