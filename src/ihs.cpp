@@ -59,6 +59,7 @@ void calcIhsNoMpi(
     std::cout << "Calculations took " << std::chrono::duration<double, std::milli>(diff).count() << "ms" << std::endl;
 
     auto unStd = ihsfinder->unStdIHSByLine();
+    auto freQs = ihsfinder->freqsByLine();
 
     std::ofstream out2(outfile);
     out2 << "Index\tID\tFreq\tiHH_0\tiHH_1\tiHS\tStd iHS" << std::endl;
@@ -66,7 +67,8 @@ void calcIhsNoMpi(
     for (const auto& it : res)
     {
         auto s = unStd[it.first];
-        out2 << it.first << '\t' << hm.lineToId(it.first) << '\t' << s.freq << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
+        auto q = freQs[it.first];
+        out2 << it.first << '\t' << hm.lineToId(it.first) << '\t' << q << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
     }
     std::cout << "# valid loci: " << res.size() << std::endl;
     std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
