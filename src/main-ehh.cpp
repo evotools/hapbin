@@ -33,7 +33,7 @@ int main(int argc, char** argv)
     Argument<const char*> hap('d', "hap", "Hap file", false, false, "");
     Argument<const char*> map('m', "map", "Map file", false, false, "");
     Argument<double> cutoff('c', "cutoff", "EHH cutoff value (default: 0.05)", false, false, 0.05);
-    Argument<double> minMAF('b', "minmaf", "Minimum allele frequency (default: 0.05)", false, false, 0.05);
+    Argument<double> minMAF('b', "minmaf", "Minimum allele frequency (default: 0.05)", false, false, 0.00);
     Argument<unsigned long long> scale('s', "scale", "Gap scale parameter in bp, used to scale gaps > scale parameter as in Voight, et al.", false, false, 20000);
     Argument<bool> binom('a', "binom", "Use binomial coefficients rather than frequency squared for EHH", true, false);
     Argument<unsigned long long> maxExtend('e', "max-extend", "Maximum distance in bp to traverse when calculating EHH (default: 0 (disabled))", false, false, 0);
