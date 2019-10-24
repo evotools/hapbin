@@ -80,6 +80,7 @@ int main(int argc, char** argv)
     else
         e = finder.find<false>(&hmap, l, &reachedEnd, &outsideMaf, true);
     e.printEHH(&hmap);
+    std::cout << "IHH_0: " << e.iHH_0 << " IHH_1: " << e.iHH_1 << std::endl;
     std::cout << "iHS: " << log(e.iHH_0/e.iHH_1) << std::endl;
     std::cout << "MAF: " << (double)e.num/(double)hmap.snpLength() << std::endl;
 }
