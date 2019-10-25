@@ -152,6 +152,7 @@ void calcIhsMpi(
         IHSFinder::LineMap res = ihsfinder->normalize();
 
         auto unStd = ihsfinder->unStdIHSByLine();
+        auto freQs = ihsfinder->freqsByLine();
 
         /*std::ofstream out(outfile);
         out << "Location\tiHH_0\tiHH_1\tiHS" << std::endl;
@@ -165,7 +166,8 @@ void calcIhsMpi(
         for (const auto& it : res)
         {
             auto s = unStd[it.first];
-            out2 << it.first << '\t' << hap.lineToId(it.first) << '\t' << s.freq << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
+            auto q = freQs[it.first];
+            out2 << it.first << '\t' << hap.lineToId(it.first) << '\t' << q << '\t' << s.iHH_0 << '\t' << s.iHH_1 << '\t' << s.iHS << "\t" << it.second << std::endl;
         }
         std::cout << "# valid loci: " << res.size() << std::endl;
         std::cout << "# loci with MAF <= " << minMAF << ": " << ihsfinder->numOutsideMaf() << std::endl;
